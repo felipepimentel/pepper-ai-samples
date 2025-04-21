@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from typing import Dict, List
 
-from pepperpy_mcp.server.fastmcp import Context, FastMCP
+from pepperpymcp import Context, FastMCP
 
 # Create an MCP server
 mcp = FastMCP("File Explorer")

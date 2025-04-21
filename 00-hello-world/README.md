@@ -51,14 +51,14 @@ python stdio_client.py --python python3 --server path/to/server.py
 You can also use the generic client from the common utilities:
 
 ```python
-from libs.pepperpy_mcp.transport import MCPClient, create_interactive_session
+from pepperpymcp import MCPClient, create_interactive_session
 
 # HTTP client
 client = MCPClient(host="localhost", port=8000)
 create_interactive_session(client)
 
 # Or for stdio mode
-from libs.pepperpy_mcp.transport import MCPStdioClient
+from pepperpymcp import MCPStdioClient
 client = MCPStdioClient(["python", "server.py", "--stdio"])
 client.start()
 try:
@@ -654,7 +654,7 @@ response = requests.get("http://localhost:8000/greeting/YourName")
 print(response.json())  # {"message": "Hello, YourName!"}
 
 # Using the MCP client library (if using MCP protocol)
-from libs.pepperpy_mcp.client import MCPClient
+from pepperpymcp import MCPClient
 
 client = MCPClient("http://localhost:8000")
 result = client.call_tool("greet", {"name": "YourName"})

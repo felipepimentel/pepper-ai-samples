@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 from typing import List, Optional
 
-from mcp import AssistantMessage, Message, SimpleMCP, UserMessage
+from pepperpymcp import AssistantMessage, Message, SimpleMCP, UserMessage
 
 # Cria o servidor MCP
 mcp = SimpleMCP("Hello World", "Um exemplo simples de servidor MCP")

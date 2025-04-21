@@ -13,7 +13,7 @@ This repository contains sample code and examples for building MCP (Model-Contro
 
 ## Common Utilities
 
-The `libs/pepperpy-mcp` directory contains shared utilities used across all examples:
+The `libs/pepperpymcp` directory contains shared utilities used across all examples:
 
 - **transport**: Utilities for MCP server creation and communication
   - `SimpleMCP`: Decorator-based API for creating MCP servers

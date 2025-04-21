@@ -11,3 +11,10 @@
 **/.env.production
 **/.env.test
 **/.specstory
+**/*.egg-info
+**/*.egg-info
+**/*.egg-info
+**/*.egg-info
+**/*.egg-info
+**/*.egg-info
+**/__pycache__

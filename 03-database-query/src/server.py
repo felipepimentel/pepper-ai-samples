@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List
 
-from pepperpy_mcp.server.fastmcp import Context, FastMCP
+from pepperpymcp import Context, FastMCP
 
 
 # Create database context
