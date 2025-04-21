@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List
 
-from mcp.server.fastmcp import Context, FastMCP
+from pepperpy_mcp.server.fastmcp import Context, FastMCP
 
 
 @dataclass

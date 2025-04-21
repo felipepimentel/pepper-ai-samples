@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 import httpx
-from mcp.server.fastmcp import Context, FastMCP
+from pepperpy_mcp.server.fastmcp import Context, FastMCP
 
 # Create an MCP server
 mcp = FastMCP("Web Search")
