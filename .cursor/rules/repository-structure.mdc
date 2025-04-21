@@ -1,0 +1,143 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Repository Structure
+
+## Root Directory Layout
+```
+pepper-ai-samples/
+├── common/              # Shared utilities and core framework
+├── examples/            # Progressive example implementations
+│   ├── 00-hello-world/ # Basic MCP server example
+│   ├── 01-file-explorer/
+│   ├── 02-web-search/
+│   ├── 03-database-query/
+│   ├── 04-agent-system/
+│   └── 05-fraud-detection/
+├── tools/              # Development and maintenance tools
+├── docs/              # Project documentation
+└── tests/             # Framework-level tests
+```
+
+## Configuration Management
+```
+.cursor/                # Cursor editor configuration
+├── rules/             # AI assistance rules
+│   ├── core-rules/    # Core behavior rules
+│   ├── tool-rules/    # Tool-specific rules
+│   └── lang-rules/    # Language-specific rules
+└── settings.json      # Editor settings
+
+.vscode/               # VS Code configuration
+├── extensions.json    # Recommended extensions
+├── settings.json     # Workspace settings
+└── launch.json       # Debug configurations
+```
+
+## Example Categories
+
+1. **Foundation (00-09)**
+   ```
+   00-hello-world/     # Basic MCP server setup
+   01-file-explorer/   # File system operations
+   02-web-search/      # External API integration
+   ```
+
+2. **Integration (10-19)**
+   ```
+   03-database-query/  # Database operations
+   04-agent-system/    # Multi-agent coordination
+   ```
+
+3. **Advanced (20+)**
+   ```
+   05-fraud-detection/ # Complex system example
+   ```
+
+## Documentation Structure
+```
+docs/
+├── getting-started/   # Setup and initial usage
+├── examples/          # Example documentation
+├── api/              # API documentation
+└── contributing/     # Contribution guidelines
+```
+
+## Development Tools
+```
+tools/
+├── scripts/          # Maintenance scripts
+├── templates/        # Project templates
+└── generators/       # Code generators
+```
+
+## Best Practices
+
+1. **Repository Organization**
+   - Keep root directory clean
+   - Group related examples together
+   - Maintain clear documentation
+   - Use consistent naming conventions
+
+2. **Configuration Management**
+   - Centralize editor configs
+   - Version control settings
+   - Document configuration options
+   - Separate team and personal settings
+
+3. **Documentation Standards**
+   - Maintain README.md files
+   - Document setup procedures
+   - Include usage examples
+   - Keep API documentation current
+
+4. **Tool Organization**
+   - Centralize development tools
+   - Document tool usage
+   - Version control scripts
+   - Maintain templates
+
+## Implementation Guidelines
+
+1. **Adding New Examples**
+   ```bash
+   # Create new example directory
+   mkdir -p examples/XX-example-name/{src,tests,docs}
+   
+   # Copy template files
+   cp tools/templates/example/* examples/XX-example-name/
+   ```
+
+2. **Updating Documentation**
+   ```bash
+   # Generate API docs
+   tools/scripts/generate-docs.sh
+   
+   # Update example README
+   cp tools/templates/readme.md examples/new-example/
+   ```
+
+3. **Managing Configuration**
+   ```bash
+   # Update editor settings
+   cp tools/templates/editor-config.json .vscode/settings.json
+   
+   # Add Cursor rules
+   mkdir -p .cursor/rules/new-category
+   ```
+
+## Maintenance Procedures
+
+1. **Regular Tasks**
+   - Update dependencies
+   - Check for broken links
+   - Validate documentation
+   - Clean up unused files
+
+2. **Version Control**
+   - Follow branching strategy
+   - Maintain clean history
+   - Document changes
+   - Tag releases

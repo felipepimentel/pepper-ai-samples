@@ -1,0 +1,169 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Project Structure Guide
+
+## Core Framework
+```
+common/
+├── transport/        # MCP framework implementation
+│   ├── mcp.py       # Core SimpleMCP class
+│   ├── transports.py # Transport implementations
+│   └── __init__.py  # Public exports
+├── types/           # Shared type definitions
+└── utils/           # Common utilities
+```
+
+## Example Structure
+Each example follows this structure:
+```
+example-name/
+├── src/             # Source code
+│   └── server.py    # Main implementation
+├── tests/           # Test files
+│   ├── unit/       # Unit tests
+│   ├── integration/ # Integration tests
+│   └── e2e/        # End-to-end tests
+├── resources/       # Static resources
+└── pyproject.toml   # Project configuration
+```
+
+## Template Organization
+```
+templates/
+├── email/          # Email templates
+├── documents/      # Document templates
+└── responses/      # API response templates
+```
+
+## Best Practices
+
+1. **Directory Naming**
+   - Use kebab-case for directory names
+   - Prefix examples with numbers (e.g., `00-hello-world`)
+   - Use descriptive, purpose-indicating names
+
+2. **File Organization**
+   - Keep related files together
+   - Use appropriate subdirectories
+   - Follow consistent naming patterns
+   - Maintain clear separation of concerns
+
+3. **Resource Management**
+   - Store static resources in `resources/`
+   - Use templates for dynamic content
+   - Organize by resource type
+   - Version control appropriate resources
+
+4. **Configuration Files**
+   - Place at project root level
+   - Use standard names (e.g., pyproject.toml)
+   - Include clear documentation
+   - Separate dev and prod configs
+
+## Implementation Guidelines
+
+1. **Creating New Examples**
+   ```bash
+   # Create directory structure
+   mkdir -p new-example/{src,tests,resources}
+   
+   # Initialize configuration
+   cat > new-example/pyproject.toml << EOF
+   [build-system]
+   requires = ["hatchling"]
+   build-backend = "hatchling.build"
+   
+   [project]
+   name = "new-example"
+   version = "0.1.0"
+   description = "New MCP server example"
+   EOF
+   ```
+
+2. **Adding Resources**
+   ```bash
+   # Create resource directories
+   mkdir -p resources/{static,templates,data}
+   
+   # Add resource tracking
+   echo "*.data binary" >> .gitattributes
+   ```
+
+3. **Template Usage**
+   ```python
+   from common.utils import load_template
+   
+   # Load and use template
+   template = load_template("email/welcome.template")
+   content = template.render(name="User")
+   ```
+
+## Directory Structure Validation
+
+1. **Required Files**
+   - README.md in each example
+   - pyproject.toml for dependencies
+   - server.py as main entry point
+   - test_server.py for tests
+
+2. **Optional Components**
+   - resources/ for static files
+   - templates/ for dynamic content
+   - docs/ for extended documentation
+
+## Example Categories
+
+1. **Basic Examples (00-09)**
+   - Core concepts
+   - Simple implementations
+   - Learning focused
+
+2. **Intermediate Examples (10-19)**
+   - Advanced features
+   - Real-world patterns
+   - Integration examples
+
+3. **Advanced Examples (20+)**
+   - Complex systems
+   - Production patterns
+   - Performance optimization
+
+## Maintenance Guidelines
+
+1. **Regular Tasks**
+   - Update dependencies
+   - Check for deprecated patterns
+   - Validate directory structure
+   - Clean up unused resources
+
+2. **Version Control**
+   - Include appropriate .gitignore
+   - Track large files with Git LFS
+   - Document branch structure
+   - Maintain clean history
+
+### Available Examples
+1. [00-hello-world/](mdc:00-hello-world/server.py): Basic MCP server with tools, resources, and prompts
+2. 01-file-explorer/: File system exploration
+3. 02-web-search/: Web search integration
+4. 03-database-query/: Database querying
+5. 04-agent-system/: Agent-based system
+6. 05-fraud-detection/: Fraud detection example
+
+## Template Organization
+- Templates must be in `templates/*.template`
+- JSON templates for structured data
+- Text templates for content generation
+- See [00-hello-world/templates/](mdc:00-hello-world/templates/welcome_email.template) for examples
+
+## Best Practices
+1. Keep server.py focused on MCP functionality
+2. Use templates for all long strings
+3. Organize resources by domain
+4. Follow consistent naming:
+   - Tools: verb_noun()
+   - Resources: noun://{param}
+   - Templates: purpose_type.template

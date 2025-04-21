@@ -1,0 +1,79 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# SimpleMCP Framework Guide
+
+## Core Components
+
+The SimpleMCP framework is implemented in [common/transport/mcp.py](mdc:common/transport/mcp.py) with the following key capabilities:
+
+### Server Creation
+```python
+from common.transport import SimpleMCP
+
+mcp = SimpleMCP("My Server", "Description")
+```
+
+### Tools
+Tools are functions that can be called by clients:
+```python
+@mcp.tool()
+def my_tool(param: str) -> str:
+    """Tool description"""
+    return f"Result: {param}"
+```
+
+### Resources
+Resources are URI-addressable data points:
+```python
+@mcp.resource("data://{id}")
+def get_data(id: str) -> str:
+    """Resource description"""
+    return f"Data for {id}"
+```
+
+### Prompts
+Prompts are template-based generators:
+```python
+@mcp.prompt()
+async def generate(name: str) -> str:
+    """Uses templates from templates/*.template"""
+    return mcp.get_template("my_template").format(name=name)
+```
+
+### HTTP Endpoints
+Custom HTTP endpoints:
+```python
+@mcp.http_endpoint("/custom/{param}")
+async def handle(param: str):
+    return {"result": param}
+```
+
+## Template System
+
+Templates should be stored in `templates/*.template` and loaded via `mcp.get_template()`. Example in [00-hello-world/templates/welcome_email.template](mdc:00-hello-world/templates/welcome_email.template).
+
+## Server Composition
+
+Servers can be mounted under prefixes:
+```python
+sub_mcp = SimpleMCP("Sub Server", "Description")
+main_mcp.mount("prefix", sub_mcp)
+```
+
+## Transport Options
+
+Multiple transport options in [common/transport/transports.py](mdc:common/transport/transports.py):
+- HTTPTransport: For HTTP/SSE communication
+- StdioTransport: For stdio communication
+- DirectTransport: For in-process communication
+
+## Example Server
+
+See [00-hello-world/server.py](mdc:00-hello-world/server.py) for a complete example showing:
+- Tool registration
+- Resource handling
+- Prompt generation with templates
+- HTTP endpoint customization

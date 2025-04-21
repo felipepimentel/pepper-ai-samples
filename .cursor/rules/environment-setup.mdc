@@ -1,0 +1,230 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Environment Setup
+
+## Prerequisites
+
+1. **Python Environment**
+   ```bash
+   # Check Python version (3.10+ required)
+   python --version
+   
+   # Install UV package manager
+   curl -sSf https://astral.sh/uv/install.sh | bash
+   ```
+
+2. **System Requirements**
+   - Git
+   - Python 3.10+
+   - UV package manager
+   - VS Code (recommended)
+
+## Virtual Environment Setup
+
+1. **Project-wide Environment**
+   ```bash
+   # Create shared virtual environment
+   ./setup-env.sh
+   source .venv/bin/activate  # Linux/macOS
+   # .venv\Scripts\activate   # Windows
+   
+   # Verify environment
+   which python
+   python -m pip list
+   ```
+
+2. **Example-specific Environment**
+   ```bash
+   # Navigate to example
+   cd example-directory
+   
+   # Create environment
+   uv venv
+   source .venv/bin/activate
+   
+   # Install dependencies
+   uv pip install -e .
+   ```
+
+## Package Management
+
+1. **Installing Dependencies**
+   ```bash
+   # Install production dependencies
+   uv pip install -e .
+   
+   # Install development dependencies
+   uv pip install -e ".[dev]"
+   
+   # Install specific packages
+   uv add fastapi uvicorn
+   ```
+
+2. **Updating Dependencies**
+   ```bash
+   # Update all dependencies
+   uv pip compile pyproject.toml --upgrade
+   
+   # Sync environment
+   uv sync
+   ```
+
+## Editor Configuration
+
+1. **VS Code Setup**
+   ```json
+   {
+     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+     "python.analysis.typeCheckingMode": "strict",
+     "editor.formatOnSave": true,
+     "python.formatting.provider": "black"
+   }
+   ```
+
+2. **Extensions**
+   - Python
+   - Pylance
+   - Black Formatter
+   - Ruff
+   - Git Lens
+
+## Project Configuration
+
+1. **pyproject.toml**
+   ```toml
+   [build-system]
+   requires = ["hatchling"]
+   build-backend = "hatchling.build"
+   
+   [project]
+   name = "example-name"
+   version = "0.1.0"
+   requires-python = ">=3.10"
+   dependencies = [
+       "fastapi>=0.104.0",
+       "uvicorn>=0.23.2"
+   ]
+   
+   [project.optional-dependencies]
+   dev = [
+       "pytest>=7.4.2",
+       "black>=23.9.1",
+       "ruff>=0.0.292"
+   ]
+   ```
+
+2. **setup.cfg**
+   ```ini
+   [tool.black]
+   line-length = 88
+   target-version = ['py310']
+   
+   [tool.ruff]
+   select = ["E", "F", "B"]
+   ignore = ["E501"]
+   ```
+
+## Development Tools
+
+1. **Code Quality**
+   ```bash
+   # Install tools
+   uv add --dev black ruff mypy pytest
+   
+   # Run formatters
+   black .
+   ruff check .
+   mypy --strict .
+   ```
+
+2. **Testing**
+   ```bash
+   # Install test dependencies
+   uv add --dev pytest pytest-cov
+   
+   # Run tests
+   pytest
+   pytest --cov=src tests/
+   ```
+
+## Troubleshooting
+
+1. **Common Issues**
+   - Virtual environment not activated
+   - Wrong Python version
+   - Package conflicts
+   - Path issues
+
+2. **Solutions**
+   ```bash
+   # Check environment
+   which python
+   python -m pip list
+   
+   # Clean environment
+   rm -rf .venv
+   uv venv
+   
+   # Verify packages
+   uv pip freeze
+   ```
+
+## Maintenance
+
+1. **Regular Updates**
+   ```bash
+   # Update UV
+   curl -sSf https://astral.sh/uv/install.sh | bash
+   
+   # Update all packages
+   uv pip compile pyproject.toml --upgrade
+   uv sync
+   ```
+
+2. **Environment Cleanup**
+   ```bash
+   # Remove cache
+   find . -type d -name "__pycache__" -exec rm -r {} +
+   
+   # Clean build artifacts
+   rm -rf build/ dist/ *.egg-info/
+   ```
+
+## Overview
+
+This project uses a single virtual environment to manage dependencies for all examples. The [setup-env.sh](mdc:setup-env.sh) script automates the setup process.
+
+## Quick Run Without Installation
+
+You can run any example without creating a virtual environment by using UV's run command:
+
+```bash
+cd <example-directory>
+uv run --with fastapi,uvicorn,pydantic src/server.py
+```
+
+This creates a temporary environment just for that run.
+
+## Installing New Dependencies
+
+To add a dependency to an example:
+
+1. Edit the example's `pyproject.toml`
+2. Run:
+   ```bash
+   uv pip install -e .
+   ```
+
+## VS Code Integration
+
+The environment integrates with VS Code:
+
+1. Select the Python interpreter from the virtual environment:
+   - Press Ctrl+Shift+P (Cmd+Shift+P on macOS)
+   - Type "Python: Select Interpreter"
+   - Choose the interpreter from `.venv`
+
+2. Use the provided launch configurations to run and debug

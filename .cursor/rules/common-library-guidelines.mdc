@@ -1,0 +1,217 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Common Library Guidelines
+
+## Purpose and Evolution
+
+The `common` library serves as the foundation for all MCP server implementations. It should:
+- Provide reusable components and utilities
+- Standardize implementation patterns
+- Reduce code duplication
+- Simplify example implementations
+
+## Library Structure
+
+```
+common/
+├── transport/           # Core MCP implementation
+│   ├── __init__.py     # Public exports
+│   ├── mcp.py          # Core MCP implementation
+│   └── client.py       # Client implementations
+├── types/              # Shared type definitions
+│   ├── __init__.py     # Public types
+│   ├── resources.py    # Resource types
+│   └── tools.py        # Tool types
+└── utils/              # Shared utilities
+    ├── __init__.py     # Public utilities
+    ├── logging.py      # Logging utilities
+    └── validation.py   # Validation utilities
+```
+
+## Core Components
+
+1. **SimpleMCP Class**
+   ```python
+   from common.transport import SimpleMCP
+   
+   class MyServer(SimpleMCP):
+       """Custom MCP server implementation."""
+       
+       def __init__(self, name: str):
+           super().__init__(name=name)
+           self.setup_tools()
+           
+       def setup_tools(self):
+           """Register server tools."""
+           self.register_tool("greeting", self.greeting)
+   ```
+
+2. **Type System**
+   ```python
+   from common.types import Resource, Tool, Context
+   
+   class CustomResource(Resource):
+       """Custom resource implementation."""
+       
+       async def get_content(self) -> bytes:
+           """Get resource content."""
+           return await self.load_data()
+   ```
+
+3. **Client Implementations**
+   ```python
+   from common.transport import MCPClient, HTTPTransport
+   
+   async def main():
+       """Example client usage."""
+       transport = HTTPTransport("http://localhost:8000")
+       client = MCPClient(transport)
+       
+       await client.initialize()
+       result = await client.call_tool("greeting")
+   ```
+
+## Enhancement Guidelines
+
+1. **When to Add to Common**
+   - Functionality used by multiple examples
+   - Generic patterns that could benefit future examples
+   - Infrastructure code (HTTP, FastAPI, etc.)
+   - Standard client implementations
+
+2. **When NOT to Add to Common**
+   - Example-specific business logic
+   - One-off implementations
+   - Experimental features
+   - Unstable or untested code
+
+3. **Evolution Process**
+   - Identify repeated patterns in examples
+   - Extract and generalize the pattern
+   - Add to appropriate common module
+   - Update examples to use common implementation
+   - Document the new functionality
+
+4. **Integration Requirements**
+   - Must maintain backward compatibility
+   - Must be well-documented
+   - Must include type hints
+   - Must follow existing patterns
+
+## Best Practices
+
+1. **Code Organization**
+   ```python
+   # common/transport/mcp.py
+   from typing import Dict, List, Optional
+   from pydantic import BaseModel
+   
+   class ToolRegistry:
+       """Manages tool registration and lookup."""
+       
+       def __init__(self):
+           self._tools: Dict[str, Tool] = {}
+           
+       def register(self, name: str, tool: Tool) -> None:
+           """Register a new tool."""
+           self._tools[name] = tool
+   ```
+
+2. **Documentation**
+   ```python
+   class ResourceManager:
+       """Manages resource lifecycle and access.
+       
+       This class provides a centralized way to:
+       - Register resources
+       - Access resource content
+       - Manage resource lifecycle
+       - Handle resource caching
+       
+       Example:
+           manager = ResourceManager()
+           manager.register("data", DataResource())
+           content = await manager.get("data://123")
+       """
+   ```
+
+3. **Testing**
+   ```python
+   # tests/common/test_mcp.py
+   import pytest
+   from common.transport import SimpleMCP
+   
+   def test_tool_registration():
+       """Test tool registration and lookup."""
+       mcp = SimpleMCP("test")
+       
+       @mcp.tool()
+       def greeting() -> str:
+           return "Hello"
+           
+       assert "greeting" in mcp.tools
+   ```
+
+## Implementation Examples
+
+1. **Resource Implementation**
+   ```python
+   from common.types import Resource, Context
+   
+   class FileResource(Resource):
+       """File system resource implementation."""
+       
+       async def get_content(self, ctx: Context) -> bytes:
+           """Get file content."""
+           path = self.get_path()
+           return await self.read_file(path)
+   ```
+
+2. **Tool Implementation**
+   ```python
+   from common.transport import SimpleMCP
+   from common.types import Context, Tool
+   
+   @SimpleMCP.tool()
+   async def search_tool(ctx: Context, query: str) -> dict:
+       """Perform search operation."""
+       results = await ctx.db.search(query)
+       return {"results": results}
+   ```
+
+## Maintenance Guidelines
+
+1. **Code Quality**
+   - Run linters and formatters
+   - Maintain test coverage
+   - Update documentation
+   - Check for deprecations
+
+2. **Version Control**
+   - Use semantic versioning
+   - Document breaking changes
+   - Maintain changelog
+   - Tag releases
+
+## Usage Example
+
+The [00-hello-world/server.py](mdc:00-hello-world/server.py) demonstrates proper usage of the common library:
+```python
+from common.transport import SimpleMCP
+
+mcp = SimpleMCP("Server Name", "Description")
+
+@mcp.tool()
+def my_tool():
+    pass
+
+@mcp.resource("resource://{id}")
+def my_resource():
+    pass
+
+mcp.add_web_client()
+mcp.run()
+```

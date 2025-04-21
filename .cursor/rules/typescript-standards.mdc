@@ -1,0 +1,47 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# TypeScript Standards
+
+This document outlines the TypeScript standards and patterns to be followed in the project.
+
+## Project Structure
+- All source code must be placed in a `src` directory within each sample project
+- Example: [00-hello-world/src/server.ts](mdc:00-hello-world/src/server.ts)
+
+## Module Configuration
+- Use `"module": "NodeNext"` and `"moduleResolution": "NodeNext"` in tsconfig.json
+- Add `.js` extensions to all local imports when using NodeNext resolution
+- Example:
+```typescript
+import { createStdioServer } from "../../common/transport/mcp-server.js";
+```
+
+## Import Standards
+- Use ES Module imports (`import`) for most packages
+- For the MCP SDK, use CommonJS require (temporary until SDK ESM support improves):
+```typescript
+const { McpServer } = require("@modelcontextprotocol/sdk/dist/server/mcp");
+```
+- For all other imports, use ES modules with `.js` extensions for local files
+
+## Type Safety
+- Always define interfaces for complex parameters
+- Use `as const` for static configuration objects
+- Add explicit return types to functions, especially async ones
+- Example:
+```typescript
+interface GreetingParams {
+    name: string;
+    formal?: boolean;
+}
+
+async function setupServer(server: McpServer): Promise<void>
+```
+
+## File Naming
+- Use `.ts` extension for TypeScript files
+- Use `.d.ts` for type declaration files
+- Keep filenames in kebab-case

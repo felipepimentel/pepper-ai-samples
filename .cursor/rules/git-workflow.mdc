@@ -1,0 +1,83 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Git Workflow
+
+## Branch Strategy
+
+1. **Main Branches**
+   - `main`: Production-ready code
+   - `develop`: Integration branch for features
+
+2. **Feature Branches**
+   - Branch from: `develop`
+   - Name format: `feature/description`
+   - Merge to: `develop` via PR
+
+3. **Hotfix Branches**
+   - Branch from: `main`
+   - Name format: `hotfix/description`
+   - Merge to: `main` and `develop`
+
+## Commit Guidelines
+
+1. **Commit Messages**
+   - Present tense, imperative mood
+   - Clear and concise description
+   - Reference issue numbers
+
+2. **Format**
+   ```
+   type(scope): description
+   
+   [optional body]
+   [optional footer]
+   ```
+
+3. **Types**
+   - feat: New feature
+   - fix: Bug fix
+   - docs: Documentation
+   - style: Formatting
+   - refactor: Code restructure
+   - test: Test updates
+   - chore: Maintenance
+
+## Pull Requests
+
+1. **Requirements**
+   - Clear description
+   - Tests included
+   - Documentation updated
+   - Code style compliant
+   - No merge conflicts
+
+2. **Review Process**
+   - At least one approval
+   - CI checks passing
+   - No blocking comments
+   - Up-to-date with base
+
+## Example
+
+```bash
+# Feature development
+git checkout develop
+git pull
+git checkout -b feature/resource-caching
+
+# Make changes
+git add .
+git commit -m "feat(resources): add LRU cache for resource manager
+
+- Implements LRU caching strategy
+- Adds cache size configuration
+- Updates documentation
+
+Closes #123"
+
+# Push and create PR
+git push -u origin feature/resource-caching
+```

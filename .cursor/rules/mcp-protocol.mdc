@@ -1,0 +1,136 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Model Context Protocol (MCP)
+
+## Core Concepts
+
+### Resources
+
+Resources are addressable content units with URIs:
+
+1. **Types**
+   - Static Resources: Pre-defined content (text, images, data)
+   - Dynamic Resources: Generated content based on parameters
+   - Streaming Resources: Real-time or chunked content delivery
+
+2. **URI Structure**
+   ```python
+   @server.resource("data://{type}/{id}")
+   async def get_data(uri: str, type: str, id: str) -> dict:
+       """Retrieve data resource by type and ID."""
+       return {
+           "uri": uri,
+           "content": await fetch_data(type, id),
+           "metadata": get_metadata(type, id)
+       }
+   ```
+
+3. **Resource Metadata**
+   ```python
+   {
+       "uri": "data://users/123",
+       "type": "application/json",
+       "etag": "abc123",
+       "last_modified": "2024-04-16T12:00:00Z"
+   }
+   ```
+
+### Tools
+
+Tools are interactive capabilities with defined schemas:
+
+1. **Tool Definition**
+   ```python
+   class SearchParams(BaseModel):
+       query: str
+       max_results: int = 10
+       filters: Optional[Dict[str, str]] = None
+
+   @server.tool("search")
+   async def search_tool(params: SearchParams) -> dict:
+       """Perform search with parameters."""
+       results = await perform_search(
+           query=params.query,
+           limit=params.max_results,
+           filters=params.filters
+       )
+       return {
+           "results": results,
+           "metadata": {
+               "total": len(results),
+               "query_time": "100ms"
+           }
+       }
+   ```
+
+2. **Error Handling**
+   ```python
+   @server.tool("process")
+   async def process_tool(params: ProcessParams) -> dict:
+       try:
+           result = await process_data(params)
+           return {"success": True, "result": result}
+       except ValidationError as e:
+           raise ToolError(
+               code="VALIDATION_ERROR",
+               message=str(e),
+               details=e.errors()
+           )
+       except ProcessingError as e:
+           raise ToolError(
+               code="PROCESSING_ERROR",
+               message=str(e)
+           )
+   ```
+
+## Protocol Flow
+
+1. **Request Flow**
+   ```mermaid
+   sequenceDiagram
+       Client->>Server: Request Resource/Tool
+       Server->>Validator: Validate Request
+       Validator->>Handler: Process Request
+       Handler->>Client: Return Response
+   ```
+
+2. **Response Format**
+   ```python
+   {
+       "status": "success",
+       "data": {
+           "content": [...],
+           "metadata": {...}
+       },
+       "errors": None
+   }
+   ```
+
+## Implementation Guidelines
+
+1. **Resource Implementation**
+   - Use clear URI patterns
+   - Include proper content types
+   - Implement caching where appropriate
+   - Handle errors gracefully
+
+2. **Tool Implementation**
+   - Define clear parameter schemas
+   - Validate all inputs
+   - Return structured responses
+   - Document error conditions
+
+3. **Security Considerations**
+   - Validate all inputs
+   - Sanitize resource content
+   - Implement rate limiting
+   - Use proper authentication
+
+4. **Performance Guidelines**
+   - Cache frequently accessed resources
+   - Use async/await for I/O operations
+   - Implement pagination for large results
+   - Monitor tool execution time

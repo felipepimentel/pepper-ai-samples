@@ -1,0 +1,87 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# MCP Client Usage Guide
+
+## Client Setup
+
+```python
+from common.transport import MCPClient, HTTPTransport
+
+# Choose appropriate transport
+transport = HTTPTransport("http://localhost:8000")
+client = MCPClient(transport)
+```
+
+## Basic Operations
+
+### Initialize Connection
+```python
+info = await client.initialize()
+print(f"Connected to: {info['name']}")
+```
+
+### List Available Tools
+```python
+tools = await client.list_tools()
+for tool in tools["tools"]:
+    print(f"Tool: {tool['name']}")
+```
+
+### Call Tools
+```python
+result = await client.call_tool("tool_name", param1="value")
+print(result["result"])
+```
+
+### Access Resources
+```python
+# List resources
+resources = await client.list_resources()
+
+# Get resource content
+content = await client.get_resource("data://123")
+```
+
+### Resource Subscriptions
+```python
+# Subscribe to updates
+await client.subscribe("data://123")
+
+# Listen for notifications
+async for notification in client.listen_notifications():
+    print(f"Update: {notification}")
+
+# Unsubscribe
+await client.unsubscribe("data://123")
+```
+
+## Transport Selection
+
+Choose transport based on use case:
+- HTTPTransport: For web-based clients
+- StdioTransport: For command-line tools
+- DirectTransport: For testing/debugging
+
+## Best Practices
+
+1. Use async context manager:
+```python
+async with MCPClient(transport) as client:
+    await client.initialize()
+```
+
+2. Handle errors appropriately:
+```python
+try:
+    result = await client.call_tool("tool_name")
+except Exception as e:
+    print(f"Error: {e}")
+```
+
+3. Close connections:
+```python
+await transport.disconnect()
+```

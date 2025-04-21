@@ -1,0 +1,174 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# MCP Server Patterns
+
+## Server Creation
+
+1. **Basic Server Setup**
+   ```python
+   from common.transport import SimpleMCP
+   
+   mcp = SimpleMCP(
+       name="Example Server",
+       description="Demonstrates MCP patterns",
+       version="1.0.0"
+   )
+   ```
+
+2. **Configuration Management**
+   ```python
+   from pydantic import BaseSettings
+   
+   class ServerConfig(BaseSettings):
+       host: str = "localhost"
+       port: int = 8000
+       debug: bool = False
+       
+   config = ServerConfig()
+   mcp = SimpleMCP(name="Server", config=config)
+   ```
+
+## Tool Patterns
+
+1. **Basic Tool**
+   ```python
+   @mcp.tool()
+   async def greeting(name: str) -> str:
+       """Return a friendly greeting."""
+       return f"Hello, {name}!"
+   ```
+
+2. **Validated Tool**
+   ```python
+   class QueryParams(BaseModel):
+       query: str
+       limit: int = Field(default=10, ge=1, le=100)
+       
+   @mcp.tool()
+   async def search(params: QueryParams) -> dict:
+       """Perform validated search."""
+       results = await db.search(
+           params.query,
+           limit=params.limit
+       )
+       return {"results": results}
+   ```
+
+3. **Error Handling**
+   ```python
+   @mcp.tool()
+   async def process_data(data: Dict[str, Any]) -> dict:
+       try:
+           result = await process(data)
+           return {"success": True, "result": result}
+       except ValidationError as e:
+           raise ToolError("VALIDATION_ERROR", str(e))
+       except ProcessingError as e:
+           raise ToolError("PROCESSING_ERROR", str(e))
+   ```
+
+## Resource Patterns
+
+1. **Static Resource**
+   ```python
+   @mcp.resource("static://{path}")
+   async def static_resource(path: str) -> bytes:
+       """Serve static files."""
+       return await read_file(path)
+   ```
+
+2. **Dynamic Resource**
+   ```python
+   @mcp.resource("data://{type}/{id}")
+   async def data_resource(type: str, id: str) -> dict:
+       """Generate dynamic content."""
+       data = await fetch_data(type, id)
+       return {
+           "content": data,
+           "metadata": {
+               "type": type,
+               "id": id,
+               "timestamp": datetime.now().isoformat()
+           }
+       }
+   ```
+
+3. **Cached Resource**
+   ```python
+   @mcp.resource("cached://{key}")
+   @cached(ttl=300)  # 5 minutes
+   async def cached_resource(key: str) -> dict:
+       """Serve cached content."""
+       return await expensive_operation(key)
+   ```
+
+## Context Management
+
+1. **Request Context**
+   ```python
+   @mcp.tool()
+   async def contextual_tool(ctx: Context, data: dict) -> dict:
+       """Use request context."""
+       user = ctx.get_user()
+       logger = ctx.get_logger()
+       logger.info(f"Request from {user}")
+       return await process_with_user(data, user)
+   ```
+
+2. **Lifespan Events**
+   ```python
+   @mcp.on_startup
+   async def startup():
+       """Initialize resources on startup."""
+       await db.connect()
+       await cache.initialize()
+   
+   @mcp.on_shutdown
+   async def shutdown():
+       """Cleanup on shutdown."""
+       await db.disconnect()
+       await cache.cleanup()
+   ```
+
+## Performance Optimization
+
+1. **Connection Pooling**
+   ```python
+   pool = ConnectionPool(max_size=20)
+   
+   @mcp.tool()
+   async def db_operation():
+       async with pool.acquire() as conn:
+           return await conn.execute(query)
+   ```
+
+2. **Batch Processing**
+   ```python
+   @mcp.tool()
+   async def batch_process(items: List[dict]) -> dict:
+       """Process items in batches."""
+       async with BatchProcessor(batch_size=100) as processor:
+           results = await processor.process_all(items)
+       return {"processed": len(results)}
+   ```
+
+3. **Rate Limiting**
+   ```python
+   limiter = RateLimiter(max_calls=100, time_window=60)
+   
+   @mcp.tool()
+   @limiter.limit()
+   async def rate_limited_tool() -> dict:
+       """Rate-limited operation."""
+       return await expensive_operation()
+   ```
+
+## Best Practices
+1. Use type hints for all parameters
+2. Include docstrings for tools and resources
+3. Handle errors and provide context through logging
+4. Use dataclasses for structured data
+5. Follow async patterns where appropriate

@@ -1,0 +1,96 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Example Development Guidelines
+
+## Core Philosophy
+
+New examples should:
+- Demonstrate specific use cases or features
+- Follow established patterns
+- Use common library components
+- Maintain minimal structure
+- Be self-contained and clear
+
+## Development Process
+
+1. **Initial Setup**
+   ```
+   example-name/
+   ├── server.py      # Main implementation
+   ├── pyproject.toml # Dependencies
+   └── README.md      # Documentation
+   ```
+
+2. **Implementation Steps**
+   - Start with [00-hello-world/server.py](mdc:00-hello-world/server.py) as template
+   - Import from common library
+   - Define tools and resources
+   - Add custom HTTP endpoints if needed
+   - Configure web client
+   - Document usage and features
+
+3. **Code Organization**
+   - Keep all implementation in `server.py`
+   - Use decorators for functionality
+   - Follow type hints and documentation standards
+   - Maintain clean and readable code
+
+## Feature Integration
+
+1. **Adding New Features**
+   - First, check if feature exists in common library
+   - If not, consider if it should be added to common
+   - If example-specific, add to server.py
+   - NEVER create separate files for features
+
+2. **Enhancing Existing Features**
+   - Modify the existing implementation
+   - Don't create new versions in separate files
+   - Keep changes focused and documented
+   - Update tests and documentation
+
+## Testing and Documentation
+
+1. **README.md Requirements**
+   - Clear description of purpose
+   - Setup instructions
+   - Usage examples
+   - API documentation
+   - Testing instructions
+
+2. **Testing Approach**
+   - Include basic test cases
+   - Test both HTTP and stdio modes
+   - Verify tool and resource functionality
+   - Test error handling
+
+## Common Mistakes to Avoid
+
+1. **File Structure**
+   - ❌ Creating separate client files
+   - ❌ Splitting functionality across files
+   - ❌ Creating enhanced versions in new files
+   - ✅ Keep everything in server.py
+
+2. **Implementation**
+   - ❌ Duplicating common functionality
+   - ❌ Ignoring type hints
+   - ❌ Poor documentation
+   - ✅ Use common library features
+
+3. **Feature Addition**
+   - ❌ Creating new files for new features
+   - ❌ Copying code from other examples
+   - ✅ Enhance existing files
+   - ✅ Reuse common components
+
+## Reference Implementation
+
+The [00-hello-world/server.py](mdc:00-hello-world/server.py) serves as the canonical example, demonstrating:
+- Proper file structure
+- Common library usage
+- Feature implementation
+- Documentation standards

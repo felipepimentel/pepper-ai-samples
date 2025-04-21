@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cliente Hello World</title>
+    <style>
+        body {
+            font-family: system-ui;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        pre {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 10px;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Cliente API Hello World</h1>
+    <div class="card">
+        <h2>Saudação Básica</h2>
+        <button onclick="fetch('/')">Obter Saudação</button>
+        <pre id="basicResponse">...</pre>
+    </div>
+    <div class="card">
+        <h2>Saudação Personalizada</h2>
+        <input id="nameInput" value="Pimenta" placeholder="Digite seu nome">
+        <button onclick="fetchGreeting()">Obter Saudação</button>
+        <pre id="personResponse">...</pre>
+    </div>
+    <script>
+        async function fetch(endpoint) {
+            const resp = await window.fetch(endpoint);
+            const data = await resp.json();
+            document.getElementById('basicResponse').textContent = JSON.stringify(data, null, 2);
+        }
+        async function fetchGreeting() {
+            const name = document.getElementById('nameInput').value;
+            const resp = await window.fetch(`/greeting/${encodeURIComponent(name)}`);
+            const data = await resp.json();
+            document.getElementById('personResponse').textContent = JSON.stringify(data, null, 2);
+        }
+        fetch('/');
+    </script>
+</body>
+
+</html>

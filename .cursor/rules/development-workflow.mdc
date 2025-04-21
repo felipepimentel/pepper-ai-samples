@@ -1,0 +1,323 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Development Workflow
+
+## Environment Setup
+
+1. **Initial Setup**
+   ```bash
+   # Clone repository
+   git clone <repository-url>
+   cd pepper-ai-samples
+   
+   # Create shared virtual environment
+   ./setup-env.sh
+   source .venv/bin/activate
+   ```
+
+2. **UV Package Manager**
+   ```bash
+   # Install UV if not present
+   curl -sSf https://astral.sh/uv/install.sh | bash
+   
+   # Install dependencies
+   uv pip install -e .
+   ```
+
+## Project Structure
+
+1. **Core Directories**
+   ```
+   pepper-ai-samples/
+   ├── common/           # Shared utilities
+   │   ├── transport/   # MCP implementation
+   │   └── types/       # Shared types
+   ├── examples/        # Example implementations
+   └── tools/           # Development tools
+   ```
+
+2. **Example Structure**
+   ```
+   example-name/
+   ├── src/            # Source code
+   │   └── server.py   # Main implementation
+   ├── tests/          # Test files
+   ├── resources/      # Static resources
+   └── pyproject.toml  # Project configuration
+   ```
+
+## Development Cycle
+
+1. **Creating New Features**
+   ```bash
+   # Create feature branch
+   git checkout -b feature/name
+   
+   # Implement changes
+   cd example-directory
+   python src/server.py
+   
+   # Run tests
+   pytest tests/
+   ```
+
+2. **Code Quality**
+   ```bash
+   # Format code
+   black .
+   
+   # Run linter
+   ruff check .
+   
+   # Type checking
+   mypy --strict .
+   ```
+
+## VS Code Integration
+
+1. **Setup**
+   - Install Python extension
+   - Select virtual environment
+   - Configure launch.json
+
+2. **Launch Configuration**
+   ```json
+   {
+     "version": "0.2.0",
+     "configurations": [
+       {
+         "name": "Python: Current File",
+         "type": "python",
+         "request": "launch",
+         "program": "${file}",
+         "console": "integratedTerminal"
+       },
+       {
+         "name": "Python: Server",
+         "type": "python",
+         "request": "launch",
+         "program": "src/server.py",
+         "cwd": "${workspaceFolder}/${input:example}",
+         "console": "integratedTerminal"
+       }
+     ]
+   }
+   ```
+
+## Testing
+
+1. **Running Tests**
+   ```bash
+   # Run all tests
+   pytest
+   
+   # Run specific test file
+   pytest tests/test_server.py
+   
+   # Run with coverage
+   pytest --cov=src tests/
+   ```
+
+2. **Test Types**
+   - Unit tests: `tests/unit/`
+   - Integration tests: `tests/integration/`
+   - End-to-end tests: `tests/e2e/`
+
+## Dependency Management
+
+1. **Adding Dependencies**
+   ```bash
+   # Add production dependency
+   uv add fastapi
+   
+   # Add development dependency
+   uv add --dev pytest
+   ```
+
+2. **Updating Dependencies**
+   ```bash
+   # Update all dependencies
+   uv pip compile pyproject.toml --upgrade
+   
+   # Sync dependencies
+   uv sync
+   ```
+
+## Documentation
+
+1. **Code Documentation**
+   - Add docstrings to all public interfaces
+   - Keep README.md up to date
+   - Document API changes
+
+2. **Example Documentation**
+   ```markdown
+   # Example Name
+   
+   ## Purpose
+   Brief description of what this example demonstrates
+   
+   ## Setup
+   Installation and configuration steps
+   
+   ## Usage
+   How to use the example
+   
+   ## API
+   Available endpoints and tools
+   ```
+
+## Troubleshooting
+
+1. **Common Issues**
+   - Port conflicts: Check running processes
+   - Import errors: Verify virtual environment
+   - Type errors: Run mypy
+
+2. **Debugging**
+   - Use VS Code debugger
+   - Add logging statements
+   - Check error logs
+
+## Release Process
+
+1. **Preparing Release**
+   ```bash
+   # Update version
+   bump2version patch
+   
+   # Update changelog
+   vi CHANGELOG.md
+   
+   # Create release branch
+   git checkout -b release/v1.0.0
+   ```
+
+2. **Release Checklist**
+   - [ ] All tests passing
+   - [ ] Documentation updated
+   - [ ] Changelog updated
+   - [ ] Version bumped
+   - [ ] Release notes prepared
+
+## Running Examples
+
+Each example can be run independently:
+
+```bash
+# Navigate to the example directory
+cd 00-hello-world
+
+# Run the server
+python src/server.py
+```
+
+## VS Code Integration
+
+1. Open the project in VS Code:
+   ```bash
+   code .
+   ```
+
+2. Select the Python interpreter from the virtual environment
+
+3. Use the provided launch configurations in `.vscode/launch.json`
+
+4. Run or debug the server using F5 or the Run button
+
+5. Test API endpoints using the REST Client extension with the provided `api.http` files
+
+## Testing APIs
+
+Each example provides multiple testing methods:
+
+1. **HTML Client**: Open `client.html` in a browser
+2. **Python Client**: Use `src/client.py` for command-line testing
+3. **REST Client**: Use the `api.http` file with VS Code's REST Client extension
+4. **curl**: Test endpoints directly with curl commands
+5. **Test Script**: Run `src/test_server.py` for automated testing
+
+## Adding New Features
+
+1. Ensure you're working in the correct example directory
+2. Update the server code in `src/server.py`
+3. Update clients to test new functionality
+4. Document the changes in the README.md
+5. Test thoroughly using the provided testing methods
+
+## Dependencies
+
+To add new dependencies to an example:
+
+```bash
+cd <example-directory>
+uv pip install --editable ".[dev]"
+```
+
+Or edit the `pyproject.toml` file and update the virtual environment:
+
+```bash
+cd <example-directory>
+uv pip install -e .
+```
+
+## Adding a New Example
+
+To create a new example:
+
+```bash
+# Create a new directory with appropriate structure
+mkdir -p new-example/{src,tests,resources}
+
+# Initialize a new pyproject.toml
+cat > new-example/pyproject.toml << EOF
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "new-example"
+version = "0.1.0"
+description = "New MCP server example"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.2",
+    "black>=23.9.1",
+    "ruff>=0.0.292",
+]
+EOF
+
+# Create a virtual environment
+cd new-example
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv sync
+
+# Create initial server.py
+cat > src/server.py << EOF
+#!/usr/bin/env python
+"""
+New MCP server example.
+"""
+import uvicorn
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+if __name__ == "__main__":
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+EOF

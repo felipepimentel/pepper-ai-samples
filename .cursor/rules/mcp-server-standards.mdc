@@ -1,0 +1,56 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# MCP Server Standards
+
+## Core Principles
+
+1. **Minimal Structure**
+   - Each example should have only essential files
+   - Primary focus should be on `server.py` as the main entry point
+   - Avoid creating multiple variations of the same functionality in separate files
+   - If a feature needs to be added/modified, enhance the existing `server.py` rather than creating new files
+
+2. **Common Library Usage**
+   - All shared functionality MUST be in the [common/transport](mdc:common/transport) directory
+   - The `SimpleMCP` class in [common/transport/mcp.py](mdc:common/transport/mcp.py) is the foundation for all MCP servers
+   - Common types are defined in [common/types](mdc:common/types)
+   - Web/HTTP functionality should be handled by the common library, not duplicated in examples
+
+3. **Code Organization**
+   - Each example should follow the structure of [00-hello-world/server.py](mdc:00-hello-world/server.py)
+   - Tools should be defined using `@mcp.tool()` decorator
+   - Resources should be defined using `@mcp.resource()` decorator
+   - HTTP endpoints should be defined using `@mcp.http_endpoint()` decorator
+   - Web client should be added using `mcp.add_web_client()`
+
+4. **Refactoring Guidelines**
+   - NEVER create new files for enhanced versions (e.g., mcp_enhanced.py, mcp_simple.py)
+   - ALWAYS modify the existing file to maintain context and history
+   - If a feature can be made generic, move it to the common library
+   - Keep the example-specific code in server.py
+
+5. **File Structure**
+   ```
+   example-name/
+   ├── server.py      # Main server implementation
+   ├── pyproject.toml # Project configuration
+   └── README.md      # Documentation
+   ```
+
+6. **Common Anti-patterns to Avoid**
+   - Creating separate client files (use built-in web client)
+   - Duplicating HTTP/FastAPI setup (use common library)
+   - Splitting functionality across multiple files
+   - Creating new files instead of enhancing existing ones
+
+## Example Implementation
+
+The [00-hello-world/server.py](mdc:00-hello-world/server.py) serves as the reference implementation showing:
+- Proper use of SimpleMCP
+- Tool and resource definitions
+- HTTP endpoint integration
+- Web client integration
+- Clean and minimal structure

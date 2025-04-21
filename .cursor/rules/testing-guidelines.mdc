@@ -1,0 +1,86 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Testing Guidelines
+
+## Overview
+
+This repository emphasizes thorough testing of all examples through multiple methods. Each example includes tools for testing from different angles.
+
+## Testing Methods
+
+### 1. HTML Client
+
+Every example includes an HTML client (`client.html`) for browser-based testing:
+
+- Open in any web browser while the server is running
+- Interactive UI for manual testing
+- Visual feedback for API responses
+- No installation required
+
+Example usage with [00-hello-world/client.html](mdc:00-hello-world/client.html).
+
+### 2. Python Client
+
+Each example provides a Python client (`src/client.py`) for programmatic and command-line testing:
+
+```bash
+# Basic greeting
+python src/client.py greeting
+
+# Personalized greeting
+python src/client.py personalized "Pimenta"
+```
+
+Example implementation: [00-hello-world/src/client.py](mdc:00-hello-world/src/client.py)
+
+### 3. REST Client
+
+VS Code REST Client files (`api.http`) are included for testing directly from the IDE:
+
+- Install the REST Client extension for VS Code
+- Open the `.http` file
+- Click "Send Request" above each request
+
+Example file: [00-hello-world/api.http](mdc:00-hello-world/api.http)
+
+### 4. Test Script
+
+Automated testing scripts verify server functionality:
+
+```bash
+python src/test_server.py
+```
+
+Example: [00-hello-world/src/test_server.py](mdc:00-hello-world/src/test_server.py)
+
+### 5. Command Line Testing
+
+Examples can be tested with curl:
+
+```bash
+# Test root endpoint
+curl http://localhost:8000/
+
+# Test greeting endpoint
+curl http://localhost:8000/greeting/Pimenta
+```
+
+## Testing Strategy
+
+All examples should include tests that cover:
+
+1. **Happy Path**: Normal operation with valid inputs
+2. **Edge Cases**: Boundary conditions and special values
+3. **Error Handling**: Proper handling of invalid inputs and error conditions
+4. **Resource Limits**: Behavior under load or resource constraints (where applicable)
+
+## VS Code Debugging
+
+Use the provided launch configurations in `.vscode/launch.json` to debug tests:
+
+1. Set breakpoints in your code
+2. Select the appropriate launch configuration
+3. Press F5 to start debugging

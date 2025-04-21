@@ -1,0 +1,218 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Common Types and Utilities
+
+This document outlines the core types and utilities shared across all MCP servers in the project.
+
+## Core Types
+
+### Context
+```python
+from common.types import Context
+
+class Context:
+    """Request context containing metadata and utilities."""
+    
+    def get_user(self) -> str:
+        """Get current user identifier."""
+        
+    def get_logger(self) -> Logger:
+        """Get context-aware logger."""
+        
+    def get_config(self) -> Dict[str, Any]:
+        """Get server configuration."""
+```
+
+### Tool Types
+```python
+from common.types import Tool, ToolError
+from pydantic import BaseModel
+
+class SearchParams(BaseModel):
+    """Example tool parameters."""
+    query: str
+    limit: int = Field(ge=1, le=100)
+
+@mcp.tool()
+async def search_tool(ctx: Context, params: SearchParams) -> dict:
+    """Example tool implementation."""
+    try:
+        results = await perform_search(params)
+        return {"results": results}
+    except Exception as e:
+        raise ToolError("SEARCH_ERROR", str(e))
+```
+
+### Resource Types
+```python
+from common.types import Resource, ResourceError
+
+class DataResource(Resource):
+    """Example resource implementation."""
+    
+    async def get_content(self) -> bytes:
+        """Get resource content."""
+        try:
+            return await load_data(self.uri)
+        except Exception as e:
+            raise ResourceError("DATA_ERROR", str(e))
+```
+
+### Transport Types
+```python
+from common.transport import (
+    MCPTransport,
+    HTTPTransport,
+    StdioTransport,
+    DirectTransport
+)
+
+# HTTP/WebSocket transport
+transport = HTTPTransport("http://localhost:8000")
+
+# Standard I/O transport
+transport = StdioTransport()
+
+# Direct in-process transport
+transport = DirectTransport()
+```
+
+## Error Types
+
+### Base Errors
+```python
+from common.types import MCPError, ToolError, ResourceError
+
+# Base MCP error
+class MCPError(Exception):
+    """Base class for all MCP errors."""
+    def __init__(self, code: str, message: str):
+        self.code = code
+        self.message = message
+
+# Tool-specific error
+class ToolError(MCPError):
+    """Error raised by tool execution."""
+    pass
+
+# Resource-specific error
+class ResourceError(MCPError):
+    """Error raised by resource access."""
+    pass
+```
+
+### Error Handling
+```python
+@mcp.tool()
+async def example_tool() -> dict:
+    try:
+        result = await process_data()
+        return {"success": True, "data": result}
+    except ValidationError as e:
+        raise ToolError("VALIDATION_ERROR", str(e))
+    except ProcessingError as e:
+        raise ToolError("PROCESSING_ERROR", str(e))
+    except Exception as e:
+        raise MCPError("UNKNOWN_ERROR", str(e))
+```
+
+## Utility Types
+
+### Configuration
+```python
+from common.types import ServerConfig
+from pydantic import BaseSettings
+
+class Config(BaseSettings):
+    """Server configuration."""
+    host: str = "localhost"
+    port: int = 8000
+    debug: bool = False
+```
+
+### Logging
+```python
+from common.utils import get_logger
+
+logger = get_logger(__name__)
+logger.info("Server starting...")
+logger.error("Error occurred", exc_info=True)
+```
+
+## Best Practices
+
+1. **Type Safety**
+   - Always use type hints
+   - Define interfaces for complex parameters
+   - Use pydantic models for validation
+
+2. **Error Handling**
+   - Use specific error types
+   - Include error codes
+   - Provide descriptive messages
+   - Log errors appropriately
+
+3. **Resource Management**
+   - Implement proper cleanup
+   - Use async context managers
+   - Handle timeouts
+
+4. **Configuration**
+   - Use pydantic settings
+   - Validate all inputs
+   - Provide sensible defaults
+
+## Example Usage
+
+Complete example combining multiple types:
+
+```python
+from common.types import Context, Tool, Resource, MCPError
+from common.transport import SimpleMCP
+from pydantic import BaseModel
+
+# Parameter model
+class QueryParams(BaseModel):
+    query: str
+    limit: int = Field(default=10, ge=1, le=100)
+
+# Tool implementation
+@mcp.tool()
+async def search(ctx: Context, params: QueryParams) -> dict:
+    try:
+        logger = ctx.get_logger()
+        logger.info(f"Searching with query: {params.query}")
+        
+        results = await perform_search(
+            query=params.query,
+            limit=params.limit
+        )
+        
+        return {
+            "success": True,
+            "results": results,
+            "metadata": {
+                "total": len(results),
+                "query": params.query
+            }
+        }
+    except Exception as e:
+        logger.error("Search failed", exc_info=True)
+        raise ToolError("SEARCH_ERROR", str(e))
+
+# Resource implementation
+@mcp.resource("data://{id}")
+async def get_data(ctx: Context, id: str) -> bytes:
+    try:
+        logger = ctx.get_logger()
+        logger.info(f"Fetching data for id: {id}")
+        
+        data = await load_data(id)
+        return data
+    except Exception as e:
+        logger.error("Data fetch failed", exc_info=True)
+        raise ResourceError("DATA_ERROR", str(e))
+```

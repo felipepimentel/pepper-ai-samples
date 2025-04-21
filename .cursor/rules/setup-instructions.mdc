@@ -1,0 +1,131 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Setup Instructions
+
+## Prerequisites
+
+The examples in this repository require:
+- Python 3.10 or higher
+- UV package manager
+- Git
+- VS Code (recommended)
+
+## Initial Setup
+
+1. **Install UV Package Manager**
+   ```bash
+   # Install UV
+   curl -sSf https://astral.sh/uv/install.sh | bash
+   
+   # Verify installation
+   uv --version
+   ```
+
+2. **Clone Repository**
+   ```bash
+   git clone https://github.com/pepper-ai/pepper-ai-samples.git
+   cd pepper-ai-samples
+   ```
+
+3. **Create Virtual Environment**
+   ```bash
+   # Create and activate shared environment
+   ./setup-env.sh
+   source .venv/bin/activate  # Linux/macOS
+   # .venv\Scripts\activate   # Windows
+   
+   # Verify Python version
+   python --version  # Should be 3.10+
+   ```
+
+## Running Examples
+
+1. **Navigate to Example**
+   ```bash
+   cd 00-hello-world  # Or any other example directory
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   # Install example dependencies
+   uv pip install -e .
+   
+   # Install development dependencies (optional)
+   uv pip install -e ".[dev]"
+   ```
+
+3. **Start Server**
+   ```bash
+   # Run the server
+   python src/server.py
+   ```
+
+4. **Access the Example**
+   - Web interface: Open http://localhost:8000 in your browser
+   - API endpoints: Use curl or Postman to access http://localhost:8000/api
+   - MCP client: Connect to ws://localhost:8000/mcp
+
+## Testing
+
+1. **Run Tests**
+   ```bash
+   # Install test dependencies
+   uv add --dev pytest pytest-cov
+   
+   # Run tests
+   pytest
+   
+   # Run with coverage
+   pytest --cov=src tests/
+   ```
+
+2. **Manual Testing**
+   - Use the web interface for interactive testing
+   - Check the example's README for specific test cases
+   - Use the provided API documentation
+
+## VS Code Integration
+
+1. **Install Extensions**
+   - Python
+   - Pylance
+   - Black Formatter
+   - Ruff
+
+2. **Configure Workspace**
+   - Select Python interpreter from .venv
+   - Enable format on save
+   - Use provided launch configurations
+
+## Troubleshooting
+
+1. **Common Issues**
+   - Port conflicts: Check if port 8000 is already in use
+   - Python version: Ensure Python 3.10+ is installed
+   - Virtual environment: Make sure it's activated
+   - Dependencies: Verify all requirements are installed
+
+2. **Solutions**
+   ```bash
+   # Check Python version
+   python --version
+   
+   # Verify environment
+   which python
+   pip list
+   
+   # Reinstall dependencies
+   uv pip install -e .
+   
+   # Check port usage
+   lsof -i :8000
+   ```
+
+3. **Getting Help**
+   - Check the example's README
+   - Review error messages in the console
+   - Look for similar issues in the repository
+   - Contact the maintainers if needed

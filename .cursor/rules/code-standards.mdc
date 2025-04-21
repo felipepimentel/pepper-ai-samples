@@ -1,0 +1,192 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Python Code Standards
+
+This project follows strict Python coding standards to ensure consistency, readability, and maintainability across all examples.
+
+## Python Standards
+
+### Style Guide
+
+1. **Formatting**
+   - Follow PEP 8 with project-specific enhancements
+   - Use Black formatter with 88 character line limit
+   - Use double quotes for strings
+   - 4 spaces for indentation (no tabs)
+
+2. **Naming Conventions**
+   - Classes: `PascalCase`
+   - Functions/methods: `snake_case`
+   - Variables: `snake_case`
+   - Constants: `UPPER_SNAKE_CASE`
+   - Private attributes: `_leading_underscore`
+
+3. **Type Annotations**
+   ```python
+   def process_transaction(
+       transaction_id: str,
+       amount: float,
+       timestamp: datetime.datetime,
+   ) -> bool:
+       """Process a transaction and return success status."""
+       result: bool = False
+       return result
+   ```
+
+4. **Docstrings**
+   ```python
+   def detect_fraud(transaction: Transaction) -> FraudResult:
+       """Analyze a transaction for potential fraud.
+       
+       Args:
+           transaction: The transaction object to analyze
+           
+       Returns:
+           FraudResult containing detection results and confidence score
+           
+       Raises:
+           ValidationError: If transaction data is invalid
+       """
+   ```
+
+5. **Imports Organization**
+   ```python
+   # Standard library
+   import datetime
+   import json
+   from typing import Dict, List, Optional
+
+   # Third-party
+   import fastapi
+   import pydantic
+
+   # Local
+   from .models import Transaction
+   from .utils import format_response
+   ```
+
+6. **Error Handling**
+   ```python
+   try:
+       result = process_transaction(transaction_id)
+   except TransactionNotFoundError:
+       log.error(f"Transaction {transaction_id} not found")
+       raise HTTPException(status_code=404, detail="Transaction not found")
+   except (DatabaseError, ConnectionError) as e:
+       log.error(f"Database error: {str(e)}")
+       raise HTTPException(status_code=500, detail="Database error")
+   ```
+
+## TypeScript Standards
+
+1. **Project Structure**
+   - All source code in `src/` directory
+   - Tests in `tests/` directory
+   - One component per file
+   - Clear file naming in kebab-case
+
+2. **Type Safety**
+   ```typescript
+   interface UserProfile {
+       id: string;
+       name: string;
+       email: string;
+       preferences?: UserPreferences;
+   }
+
+   function updateProfile(profile: UserProfile): Promise<void> {
+       // Implementation
+   }
+   ```
+
+3. **Import Standards**
+   ```typescript
+   // Third-party imports
+   import { useState, useEffect } from 'react';
+   import { z } from 'zod';
+
+   // Local imports
+   import { UserProfile } from './types';
+   import { updateProfile } from './api';
+   ```
+
+4. **Error Handling**
+   ```typescript
+   try {
+       await updateProfile(userProfile);
+   } catch (error) {
+       if (error instanceof ValidationError) {
+           logger.warn('Invalid profile data:', error.details);
+           throw new BadRequestError('Invalid profile data');
+       }
+       throw error;
+   }
+   ```
+
+## Testing Standards
+
+1. **Test Organization**
+   - Mirror source code structure in tests
+   - Use descriptive test names
+   - Group related tests in describe blocks
+
+2. **Test Structure**
+   ```python
+   def test_fraud_detection_identifies_suspicious_transaction():
+       # Arrange
+       transaction = Transaction(amount=10000, country="US")
+       
+       # Act
+       result = detect_fraud(transaction)
+       
+       # Assert
+       assert result.is_suspicious
+       assert result.confidence_score > 0.7
+   ```
+
+3. **Coverage Requirements**
+   - Minimum 80% test coverage
+   - All public interfaces must be tested
+   - Edge cases must be covered
+   - Error scenarios must be tested
+
+## Linting and Formatting
+
+We use the following tools for linting and formatting:
+
+- **Black**: Code formatting (`black .`)
+- **Ruff**: Fast linting (`ruff check .`)
+- **mypy**: Static type checking (`mypy --strict .`)
+
+Configure your editor to run these tools automatically on save.
+
+## FastAPI Best Practices
+
+For HTTP API endpoints:
+- Use appropriate HTTP methods
+- Return appropriate status codes
+- Structure response models using Pydantic
+- Document all endpoints with OpenAPI descriptions
+- Use dependency injection for common functionality
+
+```python
+@app.post("/transactions/analyze", response_model=AnalysisResponse, status_code=200)
+async def analyze_transaction(
+    transaction: Transaction,
+    detection_service: DetectionService = Depends(get_detection_service),
+) -> AnalysisResponse:
+    """
+    Analyze a transaction for potential fraud.
+    
+    Returns a detailed analysis with risk score and explanation.
+    """
+    result = detection_service.analyze(transaction)
+    return AnalysisResponse(
+        risk_score=result.risk_score,
+        is_fraudulent=result.is_fraudulent,
+        explanation=result.explanation,
+    )
+```
