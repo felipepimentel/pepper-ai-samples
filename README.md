@@ -1,6 +1,64 @@
 # Pepper AI Samples
 
-This repository contains sample code and examples for building MCP (Model-Controller-Protocol) servers with the Pepper AI framework.
+Este repositório contém exemplos de implementação de agentes de IA usando os protocolos MCP (Model Context Protocol) e A2A (Agent-to-Agent).
+
+## Estrutura do Repositório
+
+O repositório está organizado da seguinte forma:
+
+### Exemplos MCP (Model Context Protocol)
+
+Os exemplos na pasta `mcp-examples/` demonstram o uso do protocolo MCP para conectar agentes a ferramentas, APIs e recursos:
+
+- **[00-hello-world](mcp-examples/00-hello-world/)**: Exemplo básico do servidor MCP
+- **[01-file-explorer](mcp-examples/01-file-explorer/)**: Exploração do sistema de arquivos
+- **[02-web-search](mcp-examples/02-web-search/)**: Integração com busca na web
+- **[03-database-query](mcp-examples/03-database-query/)**: Consultas em banco de dados
+- **[04-agent-system](mcp-examples/04-agent-system/)**: Sistema baseado em agentes
+- **[05-api-design](mcp-examples/05-api-design/)**: Design de API
+- **[06-performance-profiling](mcp-examples/06-performance-profiling/)**: Análise de desempenho
+- **[07-architecture-analysis](mcp-examples/07-architecture-analysis/)**: Análise de arquitetura
+- **[07-code-review](mcp-examples/07-code-review/)**: Revisão de código
+- **[08-microservices](mcp-examples/08-microservices/)**: Microserviços
+- **[09-iac-analyzer](mcp-examples/09-iac-analyzer/)**: Análise de infraestrutura como código
+- **[10-event-driven](mcp-examples/10-event-driven/)**: Arquitetura orientada a eventos
+- **[11-tech-debt](mcp-examples/11-tech-debt/)**: Análise de dívida técnica
+- **[12-doc-writer](mcp-examples/12-doc-writer/)**: Geração de documentação
+- **[13-education](mcp-examples/13-education/)**: Ferramentas educacionais
+- **[14-github-projects](mcp-examples/14-github-projects/)**: Integração com projetos GitHub
+
+### Exemplos A2A (Agent-to-Agent)
+
+Os exemplos na pasta `a2a-examples/` demonstram o uso do protocolo A2A para comunicação entre agentes:
+
+- **[15-a2a-web](a2a-examples/15-a2a-web/)**: Agente de busca na web com suporte A2A e integração com MCP
+
+## Configuração do Ambiente
+
+Recomendamos o uso do gerenciador de pacotes UV para configurar o ambiente:
+
+```bash
+# Instalar UV (se ainda não estiver instalado)
+curl -sSf https://astral.sh/uv/install.sh | bash
+
+# Criar e ativar ambiente virtual
+uv venv
+source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+
+# Instalar dependências
+uv pip install -e .
+```
+
+## Bibliotecas Compartilhadas
+
+As bibliotecas comuns utilizadas pelos exemplos estão na pasta `libs/`:
+
+- **pepperpymcp**: Implementação do protocolo MCP e utilitários comuns
+
+## Recursos
+
+- [Documentação do MCP](https://modelcontextprotocol.github.io/)
+- [Documentação do A2A](https://google.github.io/A2A/)
 
 ## Project Structure
 

@@ -1,0 +1,72 @@
+{
+    "name": "Hello World A2A Agent",
+    "description": "Um agente A2A básico que demonstra as capacidades fundamentais do protocolo",
+    "version": "0.1.0",
+    "capabilities": [
+        {
+            "name": "greet",
+            "description": "Cumprimenta uma pessoa pelo nome",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Nome da pessoa"
+                    }
+                }
+            },
+            "output_schema": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "Mensagem de saudação"
+                    }
+                }
+            }
+        },
+        {
+            "name": "chat",
+            "description": "Conversa com o agente, demonstrando interação em múltiplos turnos",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "Mensagem do usuário"
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "Cor favorita do usuário"
+                    }
+                }
+            }
+        },
+        {
+            "name": "calculate",
+            "description": "Realiza cálculos matemáticos simples",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "operation": {
+                        "type": "string",
+                        "description": "Operação (add, subtract, multiply, divide)"
+                    },
+                    "a": {
+                        "type": "number",
+                        "description": "Primeiro número"
+                    },
+                    "b": {
+                        "type": "number",
+                        "description": "Segundo número"
+                    }
+                },
+                "required": [
+                    "operation",
+                    "a",
+                    "b"
+                ]
+            }
+        }
+    ]
+}

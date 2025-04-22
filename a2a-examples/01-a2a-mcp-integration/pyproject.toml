@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "a2a-mcp-integration"
+version = "0.1.0"
+description = "Exemplo de integração entre protocolos A2A e MCP"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2",
+    "aiohttp>=3.8.5",
+    "asyncio>=3.4.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.3.1", "black>=23.3.0", "ruff>=0.0.291"]

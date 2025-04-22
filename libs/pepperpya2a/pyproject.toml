@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pepperpya2a"
+version = "0.1.0"
+description = "A simplified A2A (Agent-to-Agent) protocol implementation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Pepper AI Team", email = "info@pepper.ai" }
+]
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/example/pepperpya2a"
+"Bug Tracker" = "https://github.com/example/pepperpya2a/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pepperpya2a", "pepperpya2a.*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.3.1",
+    "black>=23.3.0",
+    "ruff>=0.0.291",
+    "mypy>=1.4.1",
+] 
