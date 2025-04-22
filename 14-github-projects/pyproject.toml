@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "github-projects-mcp"
+version = "0.1.0"
+description = "GitHub Projects Integration MCP Server"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2",
+    "PyGithub>=2.1.1",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.24.1",
+    "matplotlib>=3.7.2",
+    "pandas>=2.0.3",
+    "aiohttp>=3.8.5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4.0", "black>=23.7.0", "ruff>=0.0.282"]

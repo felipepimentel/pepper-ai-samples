@@ -1,0 +1,32 @@
+{
+    "servers": {
+        "Hello World": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                "run",
+                "--directory",
+                "/home/pimentel/Workspace/pepper-ai-samples/00-hello-world",
+                "server.py",
+                "--stdio"
+            ],
+            "env": {
+                "PYTHONPATH": "/home/pimentel/Workspace/pepper-ai-samples/00-hello-world"
+            }
+        },
+        "File Explorer": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                "run",
+                "--directory",
+                "/home/pimentel/Workspace/pepper-ai-samples/01-file-explorer",
+                "server.py",
+                "--stdio"
+            ],
+            "env": {
+                "PYTHONPATH": "/home/pimentel/Workspace/pepper-ai-samples/01-file-explorer"
+            }
+        }
+    }
+}

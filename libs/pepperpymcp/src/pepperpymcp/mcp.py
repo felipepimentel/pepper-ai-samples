@@ -293,6 +293,9 @@ class PepperFastMCP:
         This method is called when the server receives a shutdown signal.
         It properly closes the server and any background tasks.
         """
+        if not self._shutdown_event.is_set():
+            return
+
         logger.info("Shutting down MCP server gracefully...")
 
         # Cancel all background tasks
@@ -300,9 +303,12 @@ class PepperFastMCP:
             if not task.done():
                 task.cancel()
 
-        # Wait for all tasks to complete
+        # Wait for all tasks to complete with a timeout
         if self._background_tasks:
-            await asyncio.gather(*self._background_tasks, return_exceptions=True)
+            try:
+                await asyncio.wait(self._background_tasks, timeout=3)
+            except asyncio.TimeoutError:
+                logger.warning("Some tasks did not complete in time")
 
         # Close the server if it has a close method
         server = getattr(self._mcp, "server", None)
@@ -310,7 +316,10 @@ class PepperFastMCP:
             logger.info("Closing server...")
             server.close()
             if hasattr(server, "wait_closed"):
-                await server.wait_closed()
+                try:
+                    await asyncio.wait_for(server.wait_closed(), timeout=2)
+                except asyncio.TimeoutError:
+                    logger.warning("Server did not close in time")
 
         logger.info("Server shutdown complete")
 
@@ -387,11 +396,18 @@ class PepperFastMCP:
         Args:
             sig: Signal number
         """
-        logger.info(f"Received shutdown signal {sig.name}")
-        self._shutdown_event.set()
+        if not self._shutdown_event.is_set():
+            logger.info(f"Received shutdown signal {sig.name}")
+            self._shutdown_event.set()
+
+            # Force exit after 5 seconds if graceful shutdown fails
+            loop = asyncio.get_running_loop()
+            loop.call_later(5, lambda: os._exit(0))
 
     async def _run_async(self, *args, **kwargs):
         """Run the server asynchronously."""
+        logger.info(f"Starting MCP server: {self._mcp.name}")
+
         # Check if we're being run in stdio mode
         if "--stdio" in sys.argv and not kwargs.get("stdio"):
             try:

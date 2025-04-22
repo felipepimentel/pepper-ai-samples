@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "hello-world-mcp"
+name = "web-search-mcp"
 version = "1.0.0"
-description = "Hello World example using MCP SDK"
+description = "Web Search example using MCP SDK"
 requires-python = ">=3.10"
 dependencies = [
     "mcp>=1.6.0",
@@ -13,10 +13,11 @@ dependencies = [
     "uvicorn>=0.23.2",
     "pydantic>=2.4.2",
     "pepperpymcp",
+    "requests>=2.31.0", # Added for web requests
 ]
 
 [project.scripts]
-hello = "server:mcp.run"
+web-search = "server:mcp.run"
 
 [tool.ruff]
 line-length = 100

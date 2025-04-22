@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "hello-world-mcp"
+name = "file-explorer-mcp"
 version = "1.0.0"
-description = "Hello World example using MCP SDK"
+description = "File Explorer example using MCP SDK"
 requires-python = ">=3.10"
 dependencies = [
     "mcp>=1.6.0",
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-hello = "server:mcp.run"
+file-explorer = "server:mcp.run"
 
 [tool.ruff]
 line-length = 100
@@ -32,4 +32,7 @@ pepperpymcp = { path = "../libs/pepperpymcp", editable = true }
 dev = ["pytest>=7.4.2", "black>=23.9.1", "ruff>=0.0.292"]
 
 [tool.hatch.build]
-include = ["server.py", "templates/*.template"]
+include = [
+    "server.py",
+    "templates/*.template",
+]

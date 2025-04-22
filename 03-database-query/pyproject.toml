@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "hello-world-mcp"
+name = "database-query-mcp"
 version = "1.0.0"
-description = "Hello World example using MCP SDK"
+description = "Database Query example using MCP SDK"
 requires-python = ">=3.10"
 dependencies = [
     "mcp>=1.6.0",
@@ -13,10 +13,12 @@ dependencies = [
     "uvicorn>=0.23.2",
     "pydantic>=2.4.2",
     "pepperpymcp",
+    "sqlalchemy>=2.0.0", # Added for database operations
+    "aiosqlite>=0.19.0", # Added for async SQLite support
 ]
 
 [project.scripts]
-hello = "server:mcp.run"
+database-query = "server:mcp.run"
 
 [tool.ruff]
 line-length = 100

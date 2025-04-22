@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "hello-world-mcp"
+name = "agent-system-mcp"
 version = "1.0.0"
-description = "Hello World example using MCP SDK"
+description = "Agent System example using MCP SDK"
 requires-python = ">=3.10"
 dependencies = [
     "mcp>=1.6.0",
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-hello = "server:mcp.run"
+agent-system = "server:mcp.run"
 
 [tool.ruff]
 line-length = 100
