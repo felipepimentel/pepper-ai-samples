@@ -1,16 +1,477 @@
 {
-    "servers": {
-        "Hello World": {
-            "type": "stdio",
-            "command": "uv",
-            "args": [
-                "run",
-                "--directory",
-                "${workspaceFolder}/00-hello-world",
-                "server.py",
-                "--stdio"
-            ],
-            "cwd": "${workspaceFolder}/00-hello-world"
-        }
+  "servers": {
+    "Hello World": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${workspaceFolder}/00-hello-world",
+        "server.py",
+        "--stdio"
+      ],
+      "cwd": "${workspaceFolder}/00-hello-world",
+      "description": "Servidor básico de exemplo para demonstrar conceitos MCP"
+    },
+    "File Explorer": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "file_explorer.server",
+        "--base-dir",
+        "${workspaceFolder}"
+      ],
+      "description": "Navegação e operações em arquivos locais"
+    },
+    "Docker": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y", 
+        "@mcp/server-docker"
+      ],
+      "env": {
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+      },
+      "description": "Gerenciamento de contêineres, imagens e redes Docker"
+    },
+    "Kubernetes": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_k8s.server"
+      ],
+      "env": {
+        "KUBECONFIG": "${env:HOME}/.kube/config"
+      },
+      "description": "Gerenciamento e consulta de recursos Kubernetes"
+    },
+    "Code Interpreter": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "code_interpreter.server"
+      ],
+      "env": {
+        "PYTHON_PATH": "${env:PATH}"
+      },
+      "description": "Execução segura de código Python em ambiente isolado"
+    },
+    "Database": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "db_connector.server"
+      ],
+      "env": {
+        "DB_CONNECTION_STRING": "postgresql://user:password@localhost:5432/dbname"
+      },
+      "description": "Conector universal para bancos de dados SQL e NoSQL"
+    },
+    "Qdrant": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "qdrant_mcp"
+      ],
+      "env": {
+        "QDRANT_URL": "http://localhost:6333",
+        "QDRANT_API_KEY": "your_api_key_here"
+      },
+      "description": "Implementa memória vetorial com Qdrant para RAG"
+    },
+    "GitHub": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "your_github_token_here",
+        "GITHUB_USERNAME": "your_username"
+      },
+      "description": "Interação com repositórios, issues e PRs do GitHub"
+    },
+    "Web Search": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "web_search.server"
+      ],
+      "env": {
+        "SERPAPI_KEY": "your_serpapi_key_here",
+        "BING_SEARCH_KEY": "your_bing_key_here"
+      },
+      "description": "Busca na web com múltiplos provedores de pesquisa"
+    },
+    "Obsidian": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-obsidian",
+        "--vault-path",
+        "${env:HOME}/Documents/Obsidian/Main"
+      ],
+      "description": "Acessa e manipula notas do Obsidian"
+    },
+    "Spotify": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "spotify-mcp"
+      ],
+      "env": {
+        "SPOTIFY_CLIENT_ID": "your_client_id_here",
+        "SPOTIFY_CLIENT_SECRET": "your_client_secret_here",
+        "SPOTIFY_REDIRECT_URI": "http://localhost:8888/callback"
+      },
+      "description": "Controle do Spotify e acesso à API de música"
+    },
+    "Linear": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "linear-mcp-server"
+      ],
+      "env": {
+        "LINEAR_API_KEY": "your_api_key_here",
+        "LINEAR_TEAM_ID": "your_team_id"
+      },
+      "description": "Gerenciamento de projetos e tarefas no Linear"
+    },
+    "Jira": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "jira_mcp.server"
+      ],
+      "env": {
+        "JIRA_URL": "https://your-domain.atlassian.net",
+        "JIRA_EMAIL": "your_email@example.com",
+        "JIRA_API_TOKEN": "your_api_token_here"
+      },
+      "description": "Gerenciamento de projetos e tarefas no Jira"
+    },
+    "Slack": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "slack_mcp.server"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "xoxb-your-token",
+        "SLACK_USER_TOKEN": "xoxp-your-token"
+      },
+      "description": "Interação com canais e mensagens do Slack"
+    },
+    "Snowflake": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_snowflake.server"
+      ],
+      "env": {
+        "SNOWFLAKE_ACCOUNT": "your_account",
+        "SNOWFLAKE_USER": "your_username",
+        "SNOWFLAKE_PASSWORD": "your_password",
+        "SNOWFLAKE_WAREHOUSE": "your_warehouse",
+        "SNOWFLAKE_DATABASE": "your_database"
+      },
+      "description": "Consultas e manipulação de dados no Snowflake"
+    },
+    "BigQuery": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "bigquery_mcp.server"
+      ],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${env:HOME}/.config/gcloud/application_default_credentials.json",
+        "BIGQUERY_PROJECT_ID": "your_project_id"
+      },
+      "description": "Consultas e análises em dados do Google BigQuery"
+    },
+    "Supabase": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server"
+      ],
+      "env": {
+        "SUPABASE_URL": "https://your-project.supabase.co",
+        "SUPABASE_KEY": "your_supabase_key"
+      },
+      "description": "Interação com bancos de dados e autenticação Supabase"
+    },
+    "Langchain": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "langchain_mcp.server"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "your_openai_key_here"
+      },
+      "description": "Acesso a agentes e ferramentas do Langchain"
+    },
+    "VSCode": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "vscode-mcp"
+      ],
+      "description": "Controle e interação com o editor VS Code"
+    },
+    "Terminal": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "terminal_mcp.server",
+        "--allow-unsafe",
+        "false"
+      ],
+      "description": "Execução segura de comandos no terminal"
+    },
+    "Zapier": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "zapier-mcp"
+      ],
+      "env": {
+        "ZAPIER_API_KEY": "your_zapier_key_here"
+      },
+      "description": "Integração com os fluxos e automações do Zapier"
+    },
+    "Gmail": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "gmail_mcp.server"
+      ],
+      "env": {
+        "GMAIL_CREDENTIALS_PATH": "${env:HOME}/.config/gmail/credentials.json",
+        "GMAIL_TOKEN_PATH": "${env:HOME}/.config/gmail/token.json"
+      },
+      "description": "Acesso e envio de emails via Gmail"
+    },
+    "Calendar": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "calendar_mcp.server"
+      ],
+      "env": {
+        "GCAL_CREDENTIALS_PATH": "${env:HOME}/.config/gcal/credentials.json",
+        "GCAL_TOKEN_PATH": "${env:HOME}/.config/gcal/token.json"
+      },
+      "description": "Gerenciamento de eventos e compromissos no Google Calendar"
+    },
+    "OpenAI": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "openai_mcp.server"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "your_openai_key_here"
+      },
+      "description": "Acesso a modelos e ferramentas da OpenAI"
+    },
+    "HuggingFace": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "hf_mcp.server"
+      ],
+      "env": {
+        "HF_API_TOKEN": "your_hf_token_here"
+      },
+      "description": "Acesso aos modelos e datasets do HuggingFace"
+    },
+    "Vector Database": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "vector_db.server",
+        "--provider",
+        "pinecone"
+      ],
+      "env": {
+        "PINECONE_API_KEY": "your_pinecone_key_here",
+        "PINECONE_ENVIRONMENT": "your_environment"
+      },
+      "description": "Interface unificada para bancos de dados vetoriais"
+    },
+    "Notion": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "notion_mcp.server"
+      ],
+      "env": {
+        "NOTION_TOKEN": "your_notion_token_here"
+      },
+      "description": "Acesso e manipulação de páginas e bancos de dados do Notion"
+    },
+    "PDF Processor": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "pdf_processor.server"
+      ],
+      "description": "Processamento, análise e extração de dados de PDFs"
+    },
+    "Image Generator": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "image_gen.server"
+      ],
+      "env": {
+        "STABILITY_API_KEY": "your_stability_key_here",
+        "OPENAI_API_KEY": "your_openai_key_here"
+      },
+      "description": "Geração de imagens com Stable Diffusion e DALL-E"
+    },
+    "Speech Recognition": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "speech_recognition.server"
+      ],
+      "description": "Reconhecimento de fala e transcrição de áudio"
+    },
+    "Text-to-Speech": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "tts_mcp.server"
+      ],
+      "env": {
+        "ELEVENLABS_API_KEY": "your_elevenlabs_key_here"
+      },
+      "description": "Conversão de texto para fala natural"
+    },
+    "Video Analysis": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "video_analysis.server"
+      ],
+      "description": "Análise e processamento de conteúdo de vídeo"
+    },
+    "Twitter": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "twitter_mcp.server"
+      ],
+      "env": {
+        "TWITTER_API_KEY": "your_api_key",
+        "TWITTER_API_SECRET": "your_api_secret",
+        "TWITTER_ACCESS_TOKEN": "your_access_token",
+        "TWITTER_ACCESS_SECRET": "your_access_secret"
+      },
+      "description": "Acesso e interação com a API do Twitter/X"
+    },
+    "Weather": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "weather_mcp.server"
+      ],
+      "env": {
+        "OPENWEATHER_API_KEY": "your_openweather_key_here"
+      },
+      "description": "Informações meteorológicas em tempo real e previsões"
+    },
+    "Maps & Geolocation": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "maps_mcp.server"
+      ],
+      "env": {
+        "GOOGLE_MAPS_API_KEY": "your_google_maps_key_here"
+      },
+      "description": "Serviços de geolocalização, rotas e informações geográficas"
     }
+  },
+  "settings": {
+    "autostart": [
+      "Hello World",
+      "File Explorer",
+      "Terminal"
+    ],
+    "timeout": 30000,
+    "retry_attempts": 3,
+    "log_level": "info",
+    "log_file": "${env:HOME}/.mcp/logs/mcp.log"
+  },
+  "groups": {
+    "development": [
+      "Docker",
+      "Kubernetes", 
+      "Code Interpreter",
+      "GitHub",
+      "VSCode",
+      "Terminal"
+    ],
+    "data_analysis": [
+      "Database",
+      "Snowflake",
+      "BigQuery",
+      "Vector Database",
+      "PDF Processor"
+    ],
+    "productivity": [
+      "Obsidian",
+      "Notion",
+      "Gmail",
+      "Calendar",
+      "Slack"
+    ],
+    "ai_tools": [
+      "Langchain",
+      "OpenAI",
+      "HuggingFace",
+      "Image Generator",
+      "Speech Recognition",
+      "Text-to-Speech"
+    ]
+  }
 }
