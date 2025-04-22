@@ -1,6 +1,47 @@
 # Hello World MCP Server
 
-This is a simple example demonstrating how to create an MCP (Model-Controller-Protocol) server using the common utilities.
+Um exemplo simples de servidor MCP utilizando o SDK oficial.
+
+## Visão Geral
+
+Este exemplo demonstra como criar um servidor MCP simples usando o SDK oficial do Model Context Protocol (MCP). O servidor fornece:
+
+- **Ferramentas**: Funções que podem ser chamadas por modelos (como greet e calculate)
+- **Recursos**: Dados acessíveis por URI (como quotes)
+- **Prompts**: Templates reutilizáveis para interações com LLMs
+
+## Instalação
+
+```bash
+# Instalar dependências
+pip install -e .
+# ou
+uv pip install -e .
+```
+
+## Execução
+
+```bash
+# Executar o servidor
+python server.py
+```
+
+## Características
+
+- Utiliza o SDK oficial MCP para Python
+- Implementa os principais recursos do MCP (ferramentas, recursos, prompts)
+- Suporta tanto conexão por stdio quanto HTTP
+- Inclui exemplos de templates e formatação
+
+## Requisitos
+
+- Python 3.10+
+- Dependências listadas em pyproject.toml
+
+## Referências
+
+- [Documentação oficial do MCP](https://modelcontextprotocol.io)
+- [Repositório do SDK Python](https://github.com/modelcontextprotocol/python-sdk)
 
 ## Features
 

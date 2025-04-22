@@ -1,17 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "pepperpymcp"
 version = "0.1.1"
-description = "Model Context Protocol (MCP) Implementation"
+description = "Pepper Python MCP Extension Package"
+readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["fastapi>=0.104.0", "uvicorn>=0.23.2", "pydantic>=2.4.2"]
+license = { text = "MIT" }
+authors = [
+    { name = "Pimenta" }
+]
+dependencies = [
+    "mcp>=1.6.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2"
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.4.2", "black>=23.9.1", "ruff>=0.0.292"]
+dev = [
+    "pytest>=7.4.2",
+    "black>=23.9.1",
+    "ruff>=0.0.292"
+]
 
-[tool.uv]
-package = true
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["pepperpymcp*"]
-exclude = ["tests*"]
+[tool.ruff]
+line-length = 100
+target-version = "py310"

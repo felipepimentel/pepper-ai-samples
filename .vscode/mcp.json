@@ -1,0 +1,16 @@
+{
+    "servers": {
+        "Hello World": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                "run",
+                "--directory",
+                "${workspaceFolder}/00-hello-world",
+                "server.py",
+                "--stdio"
+            ],
+            "cwd": "${workspaceFolder}/00-hello-world"
+        }
+    }
+}

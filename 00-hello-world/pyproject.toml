@@ -1,12 +1,13 @@
 [project]
 name = "hello-world-mcp"
 version = "1.0.0"
-description = "A simple hello world MCP server example"
+description = "Hello World example using MCP SDK"
 requires-python = ">=3.10"
 dependencies = [
-    "fastapi>=0.115.0",
-    "uvicorn>=0.24.0, <0.35.0",
-    "requests>=2.28.0",
+    "mcp>=1.6.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2",
     "pepperpymcp",
 ]
 
@@ -22,3 +23,6 @@ package = true
 
 [tool.uv.sources]
 pepperpymcp = { path = "../libs/pepperpymcp", editable = true }
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4.2", "black>=23.9.1", "ruff>=0.0.292"]
