@@ -96,9 +96,65 @@ def SystemRole(msg: str) -> Dict[str, Any]:
 
 
 # Add aliases for backward compatibility
-AssistantMessage = AssistantRole
-UserMessage = UserRole
-SystemMessage = SystemRole
+def AssistantMessage(msg: str) -> Dict[str, Any]:
+    """
+    Create an assistant message with the given text.
+    
+    Deprecated: Use PepperFastMCP.create_assistant_message() instead.
+    
+    Args:
+        msg: The message text
+        
+    Returns:
+        A properly formatted assistant message object
+    """
+    import warnings
+    warnings.warn(
+        "AssistantMessage() is deprecated, use mcp.create_assistant_message() instead",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return AssistantRole(msg)
+
+def UserMessage(msg: str) -> Dict[str, Any]:
+    """
+    Create a user message with the given text.
+    
+    Deprecated: Use PepperFastMCP.create_user_message() instead.
+    
+    Args:
+        msg: The message text
+        
+    Returns:
+        A properly formatted user message object
+    """
+    import warnings
+    warnings.warn(
+        "UserMessage() is deprecated, use mcp.create_user_message() instead",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return UserRole(msg)
+
+def SystemMessage(msg: str) -> Dict[str, Any]:
+    """
+    Create a system message with the given text.
+    
+    Deprecated: Use PepperFastMCP.create_system_message() instead.
+    
+    Args:
+        msg: The message text
+        
+    Returns:
+        A properly formatted system message object
+    """
+    import warnings
+    warnings.warn(
+        "SystemMessage() is deprecated, use mcp.create_system_message() instead",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return SystemRole(msg)
 
 
 def CreateMessages(
@@ -293,22 +349,20 @@ class PepperFastMCP:
         This method is called when the server receives a shutdown signal.
         It properly closes the server and any background tasks.
         """
-        if not self._shutdown_event.is_set():
-            return
-
         logger.info("Shutting down MCP server gracefully...")
 
         # Cancel all background tasks
-        for task in self._background_tasks:
-            if not task.done():
-                task.cancel()
+        if hasattr(self, "_background_tasks"):
+            for task in self._background_tasks:
+                if not task.done():
+                    task.cancel()
 
-        # Wait for all tasks to complete with a timeout
-        if self._background_tasks:
-            try:
-                await asyncio.wait(self._background_tasks, timeout=3)
-            except asyncio.TimeoutError:
-                logger.warning("Some tasks did not complete in time")
+            # Wait for all tasks to complete with a timeout
+            if self._background_tasks:
+                try:
+                    await asyncio.wait(self._background_tasks, timeout=3)
+                except asyncio.TimeoutError:
+                    logger.warning("Some tasks did not complete in time")
 
         # Close the server if it has a close method
         server = getattr(self._mcp, "server", None)
@@ -433,25 +487,41 @@ class PepperFastMCP:
 
     def run(self, *args, **kwargs):
         """
-        Run the server with graceful shutdown support.
-
+        Run the server with the direct uvicorn+asyncio approach that's compatible with UV.
+        
         This method handles signals for graceful shutdown and ensures
         all resources are properly cleaned up when the server exits.
         """
-        try:
-            # Check if we're already in an event loop
-            loop = asyncio.get_running_loop()
-            # If we are, call the async method directly with graceful shutdown
-            return asyncio.run_coroutine_threadsafe(
-                self._run_server_with_graceful_shutdown(*args, **kwargs), loop
-            ).result()
-        except RuntimeError:
-            # No event loop running, create one
+        import uvicorn
+        
+        print(f"Starting {self._mcp.name} MCP Server")
+        
+        # Initialize shutdown event
+        self._shutdown_event = asyncio.Event()
+        
+        async def run_server():
+            config = uvicorn.Config(app=self._mcp.app, host=kwargs.get("host", "0.0.0.0"), 
+                                  port=kwargs.get("port", 8000), log_level=kwargs.get("log_level", "info"))
+            server = uvicorn.Server(config)
             try:
-                return asyncio.run(self._run_server_with_graceful_shutdown(*args, **kwargs))
-            except KeyboardInterrupt:
-                logger.info("Received keyboard interrupt, shutting down")
-                return None
+                await server.serve()
+            except asyncio.CancelledError:
+                logger.info("Server task cancelled")
+            finally:
+                # Set shutdown event and handle cleanup
+                if hasattr(self, "_shutdown_event"):
+                    self._shutdown_event.set()
+                await self._handle_shutdown()
+        
+        try:
+            # Run with direct asyncio call - always use this approach for UV compatibility
+            return asyncio.run(run_server())
+        except KeyboardInterrupt:
+            logger.info("Received keyboard interrupt, shutting down")
+            return None
+        except Exception as e:
+            logger.error(f"Error running server: {str(e)}")
+            raise
 
     # Context manager support for graceful shutdown
     async def __aenter__(self):

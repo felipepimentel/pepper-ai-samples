@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from pepperpymcp import AssistantMessage, PepperFastMCP, UserMessage
+from pepperpymcp import PepperFastMCP
 
 mcp = PepperFastMCP("Hello World", description="Um exemplo simples de servidor MCP")
 
@@ -175,9 +175,9 @@ async def start_conversation(name: str) -> list[Dict[str, Any]]:
         time = "boa noite"
 
     return [
-        AssistantMessage(f"Olá {name}, {time}! Como posso ajudar?"),
-        UserMessage("Estou aqui para aprender sobre MCP!"),
-        AssistantMessage("Ótimo! Vou te ajudar a entender como funciona. Por onde quer começar?"),
+        mcp.create_assistant_message(f"Olá {name}, {time}! Como posso ajudar?"),
+        mcp.create_user_message("Estou aqui para aprender sobre MCP!"),
+        mcp.create_assistant_message("Ótimo! Vou te ajudar a entender como funciona. Por onde quer começar?"),
     ]
 
 

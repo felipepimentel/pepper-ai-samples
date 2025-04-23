@@ -23,7 +23,7 @@ uv pip install -e .
 
 ```bash
 # Executar o servidor
-python server.py
+uv run server.py
 ```
 
 ## Características
@@ -55,14 +55,11 @@ python server.py
 ### Running the Server
 
 ```bash
-# HTTP mode (default)
-python server.py
+# Run with UV
+uv run server.py
 
-# stdio mode
-python server.py --stdio
-
-# Custom host/port
-python server.py --host 127.0.0.1 --port 8080
+# Custom host/port - set in server.py or modify the uvicorn config
+uv run server.py
 ```
 
 ### Running the Clients
@@ -171,25 +168,11 @@ This example has been simplified to a single file! All you need is:
 
 ## Running the Server
 
-Run directly with Python:
+Run directly with UV:
 
 ```bash
-# HTTP mode (default)
-python server.py
-
-# MCP stdio mode
-python server.py --stdio
-```
-
-Run with uvx (after installation):
-
-```bash
-# Install locally
-uv pip install -e .
-
-# Run with uvx
-uvx hello-world        # HTTP mode
-uvx hello-world --stdio  # MCP stdio mode
+# Standard mode
+uv run server.py
 ```
 
 ## Features

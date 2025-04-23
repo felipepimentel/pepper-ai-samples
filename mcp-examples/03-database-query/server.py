@@ -178,8 +178,12 @@ if __name__ == "__main__":
     try:
         mcp.run()
     finally:
+        # Ensure database connections are closed
         for alias, conn_info in list(db_connections.items()):
             try:
                 conn_info["connection"].close()
             except:
                 pass
+        # Close the main connection
+        if conn:
+            conn.close()
