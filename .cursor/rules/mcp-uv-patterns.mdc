@@ -1,0 +1,153 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# MCP UV Integration Patterns
+
+This document outlines the recommended patterns for running MCP servers with UV, covering dependency management, environment setup, and execution patterns.
+
+## Server Implementation
+
+### Simple Server
+
+The simplest implementation using the `PepperFastMCP` wrapper, which is UV-compatible:
+
+```python
+# CORRECT: Simple server with PepperFastMCP
+from pepperpymcp import PepperFastMCP
+
+# Initialize server
+mcp = PepperFastMCP(
+    name="Simple Server", 
+    description="A simple MCP server example"
+)
+
+# Register tools
+@mcp.tool()
+def greeting(name: str) -> str:
+    """Return a friendly greeting"""
+    return f"Hello, {name}!"
+
+# Run server (UV-compatible)
+if __name__ == "__main__":
+    mcp.run()
+```
+
+### Server with Cleanup
+
+If your server needs cleanup during shutdown:
+
+```python
+# Server with resources that need cleanup
+if __name__ == "__main__":
+    try:
+        # Run the server (will handle signals automatically)
+        mcp.run()
+    finally:
+        # Clean up resources
+        print("Cleaning up resources...")
+        # database.close_connection()
+        # temp_files.cleanup()
+```
+
+## Message Creation
+
+Always prefer using instance methods over deprecated global functions:
+
+```python
+# RECOMMENDED: Use instance methods
+messages = [
+    mcp.create_assistant_message("Hello, I'm an AI assistant."),
+    mcp.create_user_message("I need help with something."),
+    mcp.create_system_message("You are a helpful assistant.")
+]
+
+# DEPRECATED: Global functions (will show warnings)
+# from pepperpymcp import AssistantMessage, UserMessage, SystemMessage
+# messages = [
+#     AssistantMessage("Hello, I'm an AI assistant."),
+#     UserMessage("I need help with something."),
+#     SystemMessage("You are a helpful assistant.")
+# ]
+```
+
+## Server Execution
+
+The `run()` method in `PepperFastMCP` now handles:
+
+1. Signal management (SIGINT, SIGTERM)
+2. Graceful server shutdown
+3. Both HTTP and stdio modes automatically
+4. Configurability via environment variables
+
+```python
+# Simple execution
+if __name__ == "__main__":
+    mcp.run()
+
+# With custom options
+if __name__ == "__main__":
+    mcp.run(
+        host="0.0.0.0",     # Listen on all interfaces
+        port=9000,          # Custom port
+        workers=4,          # Multiple workers
+        log_level="info"    # Control log verbosity
+    )
+```
+
+## Dependencies Management
+
+Use `pyproject.toml` instead of `requirements.txt` for all projects:
+
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "my-mcp-example"
+version = "0.1.0"
+description = "An example MCP server with UV support"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.6.0",           # Official MCP SDK
+    "pepperpymcp>=0.1.1",   # Extended functionality
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.2",
+    "black>=23.9.1",
+    "ruff>=0.0.292",
+]
+
+# For local development
+[tool.uv.sources]
+pepperpymcp = { path = "../libs/pepperpymcp", editable = true }
+```
+
+## Implementation Details
+
+The `PepperFastMCP.run()` method now automatically:
+
+1. Detects if running in a terminal (for HTTP server) or pipe (for stdio)
+2. Sets up signal handlers for graceful shutdown
+3. Cleans up resources as needed
+4. Supports environment variables for configuration:
+   - `MCP_PORT`: HTTP server port (default: 8000)
+   - `MCP_HOST`: HTTP server host (default: 127.0.0.1)
+   - `MCP_WORKERS`: Number of worker processes (default: 1)
+   - `MCP_LOG_LEVEL`: Logging level (default: "info")
+   - `MCP_MODE`: Force a specific mode ("http" or "stdio")
+
+## Reference Implementation
+
+See [mcp-examples/00-hello-world/server.py](mdc:mcp-examples/00-hello-world/server.py) for a complete example of:
+- Proper tool registration
+- Message creation
+- Resource implementation
+- UV-compatible server execution

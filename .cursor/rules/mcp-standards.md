@@ -58,45 +58,55 @@
    # mcp = SimpleMCP("Server Name", "Description")  # Avoid this!
    ```
 
-2. **Message Handling**
+2. **Message Creation**
    ```python
-   # CORRECT: Use official MCP types
-   from mcp import types
+   # CORRECT: Use instance methods from PepperFastMCP
+   messages = [
+       mcp.create_assistant_message("Hello, how can I help?"),
+       mcp.create_user_message("I need assistance"),
+       mcp.create_system_message("You are a helpful assistant")
+   ]
    
-   # Return proper message format
-   return {
-       "role": "assistant", 
-       "content": types.TextContent(type="text", text="Message")
-   }
-   
-   # INCORRECT: Legacy message format
-   # from pepperpymcp import AssistantMessage
-   # return AssistantMessage("Message")  # Avoid this!
+   # DEPRECATED: Global functions (still work but will show warnings)
+   # from pepperpymcp import AssistantMessage, UserMessage, SystemMessage
+   # messages = [
+   #     AssistantMessage("Hello, how can I help?"),
+   #     UserMessage("I need assistance"),
+   #     SystemMessage("You are a helpful assistant")
+   # ]
    ```
 
 3. **Server Execution**
    ```python
-   # CORRECT: Use async/await pattern
-   async def main():
-       await mcp.run()
-   
+   # CORRECT: Use simplified run() method (UV-compatible)
    if __name__ == "__main__":
-       import asyncio
-       asyncio.run(main())
+       mcp.run()
    
-   # INCORRECT: Synchronous execution
+   # Server with cleanup
+   if __name__ == "__main__":
+       try:
+           mcp.run()
+       finally:
+           # Cleanup code here
+           db_connection.close()
+   
+   # INCORRECT: Legacy async execution pattern
+   # async def main():
+   #     await mcp.run()
+   # 
    # if __name__ == "__main__":
-   #     mcp.run(mode=ConnectionMode.STDIO)  # Avoid this!
+   #     import asyncio
+   #     asyncio.run(main())
    ```
 
 ## Migration Strategy
 
-When encountering code that uses the legacy SimpleMCP:
+When encountering code that uses legacy patterns:
 
 1. Replace `SimpleMCP` with `PepperFastMCP` from `pepperpymcp`
-2. Ensure the official `mcp` SDK is installed
-3. Update message handling to use proper dictionary format with `types.TextContent`
-4. Convert to async/await pattern for server execution
+2. Update message handling to use instance methods like `mcp.create_assistant_message()`
+3. Simplify server execution to use `mcp.run()` directly
+4. For servers requiring cleanup, use a try-finally block around `mcp.run()`
 5. Update dependencies in pyproject.toml to include both `mcp>=1.6.0` and `pepperpymcp`
 
 ## Dependencies Management
@@ -117,4 +127,12 @@ dependencies = [
 pepperpymcp = { path = "../libs/pepperpymcp", editable = true }
 ```
 
-Do NOT use requirements.txt files. 
+Do NOT use requirements.txt files. Use `uv pip install -e .` to install and `uv sync` to install from lockfile.
+
+## Implementation Examples
+
+See [mcp-examples/00-hello-world/server.py](mdc:mcp-examples/00-hello-world/server.py) for a reference implementation:
+- Proper imports
+- Tool and resource registration
+- Message creation using instance methods
+- UV-compatible server execution with `mcp.run()` 

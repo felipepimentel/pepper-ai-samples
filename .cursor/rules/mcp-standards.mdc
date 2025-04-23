@@ -1,0 +1,142 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# MCP Server Standards
+
+## Core Components
+
+### Imports
+
+```python
+# CORRECT: Import PepperFastMCP class
+from pepperpymcp import PepperFastMCP
+
+# Initialize server
+mcp = PepperFastMCP(
+    name="My Server", 
+    description="Server description"
+)
+```
+
+```python
+# INCORRECT: Old import pattern
+from common.transport import SimpleMCP  # Deprecated
+```
+
+### Tool Registration
+
+```python
+# CORRECT: Use mcp.tool() decorator with typing
+@mcp.tool()
+def greeting(name: str) -> str:
+    """Return a greeting message."""
+    return f"Hello, {name}!"
+```
+
+```python
+# INCORRECT: Missing type hints
+@mcp.tool()
+def greeting(name):  # Missing return type
+    return f"Hello, {name}!"
+```
+
+### Message Creation
+
+```python
+# CORRECT: Use instance methods
+messages = [
+    mcp.create_system_message("You are a helpful assistant."),
+    mcp.create_user_message("Help me with this task."),
+    mcp.create_assistant_message("I'll help you solve that.")
+]
+```
+
+```python
+# DEPRECATED: Global functions (will show warnings)
+from pepperpymcp import SystemMessage, UserMessage, AssistantMessage
+messages = [
+    SystemMessage("You are a helpful assistant."),
+    UserMessage("Help me with this task."),
+    AssistantMessage("I'll help you solve that.")
+]
+```
+
+### Server Execution
+
+```python
+# CORRECT: UV-compatible execution
+if __name__ == "__main__":
+    mcp.run()  # Simplified, UV-compatible
+```
+
+```python
+# CORRECT: With cleanup
+if __name__ == "__main__":
+    try:
+        mcp.run()
+    finally:
+        # Clean up resources
+        database.close()
+```
+
+```python
+# INCORRECT: Old execution pattern
+if __name__ == "__main__":
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+```
+
+## Resource Implementation
+
+```python
+# CORRECT: Resource with type hints
+@mcp.resource("data://{id}")
+async def get_data(id: str) -> bytes:
+    """Get data by ID."""
+    return await load_data(id)
+```
+
+## Dependency Management
+
+```toml
+# CORRECT: pyproject.toml with proper dependencies
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "my-mcp-example"
+version = "0.1.0"
+description = "An example MCP server"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.6.0",
+    "pepperpymcp>=0.1.1",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "pydantic>=2.4.2",
+]
+```
+
+```
+# INCORRECT: requirements.txt (use pyproject.toml instead)
+fastapi==0.104.0
+uvicorn==0.23.2
+pydantic==2.4.2
+```
+
+## Migration Strategy
+
+1. Replace `SimpleMCP` with `PepperFastMCP`
+2. Update message handling to use instance methods
+3. Simplify server execution with `mcp.run()`
+4. Use `pyproject.toml` for dependency management
+
+## Implementation Example
+
+See [mcp-examples/00-hello-world/server.py](mdc:mcp-examples/00-hello-world/server.py) for a complete example showing:
+- Proper imports
+- Tool registration with type hints
+- Message creation with instance methods
+- UV-compatible server execution
