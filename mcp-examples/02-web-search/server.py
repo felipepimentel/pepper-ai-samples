@@ -6,7 +6,7 @@ Demonstra como criar um servidor MCP para pesquisas e interações com a web.
 
 import re
 from html import unescape
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from urllib.parse import quote, urlparse
 
 import httpx
@@ -248,9 +248,7 @@ async def extract_links(url: str) -> Dict[str, Any]:
 
             return {
                 "url": url,
-                "total_links": len(internal_links)
-                + len(external_links)
-                + len(resource_links),
+                "total_links": len(internal_links) + len(external_links) + len(resource_links),
                 "internal_links": internal_links,
                 "external_links": external_links,
                 "resource_links": resource_links,
@@ -261,136 +259,142 @@ async def extract_links(url: str) -> Dict[str, Any]:
 
 @mcp.resource("url://{path}")
 def url_resource(path: str) -> str:
-    """Acessa uma URL como recurso.
+    """Acessar o conteúdo de uma URL como um recurso MCP.
 
-    Use este recurso para acessar o conteúdo de uma URL via URI no formato url://{path}.
+    Este recurso permite acessar conteúdo da web diretamente como recursos MCP.
+    O URI deve estar no formato url://{path}, onde {path} é a URL codificada.
 
     Exemplos de uso:
-    - url://example.com  →  Obtém o conteúdo de example.com
-    - url://docs.python.org/3/library/asyncio.html  →  Documentação do asyncio
+    - url://example.com  →  Acessa o conteúdo de https://example.com
+    - url://api.example.com/data  →  Acessa uma API
 
     Args:
-        path: URL a ser acessada
+        path: URL a ser acessada (sem https://)
 
     Returns:
-        O conteúdo textual da URL
+        O conteúdo da URL como string
     """
-    try:
-        # Verificar se a URL tem o protocolo
-        if not path.startswith(("http://", "https://")):
-            path = f"https://{path}"
-
-        response = httpx.get(
-            path,
-            headers={"User-Agent": USER_AGENT},
-            timeout=TIMEOUT,
-            follow_redirects=True,
-        )
-        response.raise_for_status()
-
-        # Verificar se é HTML
-        content_type = response.headers.get("content-type", "")
-        if "text/html" in content_type.lower():
-            return _extract_text_from_html(response.text)
-        else:
-            return f"[Conteúdo não-HTML detectado: {content_type}]\n\n{response.text[:2000]}"
-    except Exception as e:
-        return f"Erro ao acessar URL: {str(e)}"
+    import asyncio
+    
+    async def get_url_content():
+        url = f"https://{path}"
+        response = await fetch_url(url)
+        return response.get("content", f"Erro ao acessar {url}")
+    
+    # Executar a função assíncrona
+    loop = asyncio.get_event_loop()
+    content = loop.run_until_complete(get_url_content())
+    
+    return content
 
 
 @mcp.prompt()
 async def summarize_webpage(url: str) -> str:
-    """Gera um resumo formatado de uma página web.
+    """Gera um resumo do conteúdo de uma página web.
 
-    Use este prompt quando precisar de um resumo bem formatado de uma página web,
-    incluindo título, principais links e uma visão geral do conteúdo.
+    Use este prompt quando precisar criar um resumo estruturado de uma página web,
+    incluindo título, conteúdo principal e links mais importantes.
 
     Exemplos de uso:
     - summarize_webpage("https://example.com")  →  Resumo da página example.com
 
     Args:
-        url: URL da página web a ser resumida
+        url: URL da página a ser resumida
 
     Returns:
-        Um resumo formatado em markdown da página web
+        Resumo formatado da página web
     """
     try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            response = await client.get(
-                url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT
-            )
-            response.raise_for_status()
-
-            # Extrair informações
-            html_content = response.text
-
-            # Extrair título
-            title_match = re.search(
-                r"<title>(.*?)</title>", html_content, re.IGNORECASE | re.DOTALL
-            )
-            title = "Sem título"
-            if title_match:
-                title = unescape(title_match.group(1).strip())
-
-            # Extrair texto
-            text_content = _extract_text_from_html(html_content)
-
-            # Extrair alguns links importantes
-            links = re.findall(r'href=[\'"]([^\'"]+)[\'"]', html_content)
-            links = [
-                link for link in links if link.startswith(("http://", "https://", "/"))
-            ]
-            links = list(set(links))[:5]  # Remover duplicatas e limitar a 5
-
-            # Criar resumo
-            summary = f"""
-# Resumo da página: {title}
-
-URL: {url}
-
-## Conteúdo principal:
-{text_content[:500]}...
-
-## Links principais:
-"""
-
-            for link in links:
-                if link.startswith("/"):
-                    base_url = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
-                    full_link = f"{base_url}{link}"
-                    summary += f"- [{link}]({full_link})\n"
-                else:
-                    summary += f"- [{link}]({link})\n"
-
-            return summary
+        # Obter conteúdo da página
+        page_data = await fetch_url(url, extract_text=True)
+        
+        if "error" in page_data:
+            return f"Erro ao acessar a página: {page_data['error']}"
+        
+        # Obter links da página
+        links_data = await extract_links(url)
+        
+        # Extrair principais informações
+        title = page_data.get("title", "Sem título")
+        content = page_data.get("content", "")
+        
+        # Truncar conteúdo se for muito longo
+        if len(content) > 1500:
+            content = content[:1500] + "..."
+        
+        # Selecionar links importantes
+        important_links = []
+        
+        # Priorizar links internos
+        internal_links = links_data.get("internal_links", [])
+        if internal_links:
+            important_links.extend(internal_links[:3])
+        
+        # Adicionar alguns links externos
+        external_links = links_data.get("external_links", [])
+        if external_links:
+            important_links.extend(external_links[:2])
+        
+        # Construir o resumo
+        return mcp.get_template("webpage_summary").format(
+            url=url,
+            title=title,
+            content=content,
+            links=important_links,
+            link_count=links_data.get("total_links", 0)
+        )
     except Exception as e:
         return f"Erro ao resumir página: {str(e)}"
 
 
-# Função auxiliar para extrair texto de HTML
 def _extract_text_from_html(html: str) -> str:
-    """Extrai texto legível de conteúdo HTML, removendo tags."""
-    # Remover scripts e estilos
-    html = re.sub(r"<script[^>]*>[\s\S]*?</script>", "", html)
-    html = re.sub(r"<style[^>]*>[\s\S]*?</style>", "", html)
-
-    # Remover tags HTML
+    """Extrai texto de conteúdo HTML, removendo tags.
+    
+    Esta função auxiliar remove tags HTML e formata o texto para melhor legibilidade.
+    
+    Args:
+        html: O conteúdo HTML para processar
+        
+    Returns:
+        Texto extraído do HTML
+    """
+    # Padrão para identificar scripts, estilos, comentários, etc.
+    patterns_to_remove = [
+        r"<style[^>]*>.*?</style>",
+        r"<script[^>]*>.*?</script>",
+        r"<!--.*?-->",
+        r"<head>.*?</head>",
+    ]
+    
+    # Remover padrões indesejados
+    for pattern in patterns_to_remove:
+        html = re.sub(pattern, " ", html, flags=re.DOTALL)
+    
+    # Substituir quebras de linha e tags de parágrafo
+    html = re.sub(r"<br[^>]*>|<p[^>]*>", "\n", html)
+    
+    # Remover todas as tags HTML restantes
     html = re.sub(r"<[^>]*>", " ", html)
-
-    # Substituir múltiplos espaços em branco por um único espaço
-    html = re.sub(r"[ \t\r\f\v]+", " ", html)
-
-    # Substituir múltiplas quebras de linha por uma única quebra
-    html = re.sub(r"\n+", "\n", html)
-
+    
+    # Substituir múltiplos espaços por um único espaço
+    html = re.sub(r"\s+", " ", html)
+    
     # Decodificar entidades HTML
-    html = unescape(html)
+    text = unescape(html)
+    
+    # Limpar quebras de linha duplicadas
+    text = re.sub(r"\n\s*\n", "\n\n", text)
+    
+    return text.strip()
 
-    # Remover espaços em branco no início e fim
-    html = html.strip()
 
-    return html
+# Adicionar cliente web
+mcp.add_web_client()
 
 
 if __name__ == "__main__":
-    mcp.run()
+    try:
+        mcp.run()
+    finally:
+        # Não são necessárias ações específicas de limpeza para este exemplo
+        pass

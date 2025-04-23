@@ -4,31 +4,33 @@ Database Query MCP Server Example
 Demonstra como criar um servidor MCP para interação com bancos de dados.
 """
 
-import os
-import re
 import sqlite3
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pepperpymcp import PepperFastMCP
 from fastapi import FastAPI
+from pepperpymcp import PepperFastMCP
 from pydantic import BaseModel
 
 mcp = PepperFastMCP(
     "Database Query", description="Servidor MCP para consultas a bancos de dados"
 )
 
-# Armazenar conexões aos bancos de dados
-db_connections = {}
-
-# Database connection
+# Configurar conexão ao banco de dados
 DB_PATH = "Chinook.db"
 conn = sqlite3.connect(DB_PATH)
 conn.row_factory = sqlite3.Row
 
+
 @mcp.tool()
-async def list_tables() -> Dict:
-    """List all tables in the database."""
+async def list_tables() -> Dict[str, List[str]]:
+    """Lista todas as tabelas no banco de dados.
+    
+    Use esta ferramenta quando precisar descobrir quais tabelas estão disponíveis
+    no banco de dados SQLite conectado.
+    
+    Returns:
+        Dicionário contendo a lista de tabelas no banco de dados
+    """
     cursor = conn.cursor()
     cursor.execute("""
         SELECT name FROM sqlite_master 
@@ -38,9 +40,20 @@ async def list_tables() -> Dict:
     tables = [row[0] for row in cursor.fetchall()]
     return {"tables": tables}
 
+
 @mcp.tool()
-async def get_schema(table: str) -> Dict:
-    """Get schema information for a specific table."""
+async def get_schema(table: str) -> Dict[str, Any]:
+    """Obtém informações de esquema para uma tabela específica.
+    
+    Use esta ferramenta quando precisar examinar a estrutura de uma tabela
+    específica, incluindo nomes de colunas, tipos e restrições.
+    
+    Args:
+        table: Nome da tabela para obter o esquema
+        
+    Returns:
+        Dicionário contendo informações do esquema da tabela
+    """
     cursor = conn.cursor()
     cursor.execute(f"PRAGMA table_info({table})")
     columns = [
@@ -54,13 +67,25 @@ async def get_schema(table: str) -> Dict:
     ]
     return {"table": table, "columns": columns}
 
+
 class QueryRequest(BaseModel):
     query: str
-    params: Optional[List] = None
+    params: Optional[List[Any]] = None
+
 
 @mcp.tool()
-async def query(request: QueryRequest) -> Dict:
-    """Execute a SQL query."""
+async def query(request: QueryRequest) -> Dict[str, Any]:
+    """Executa uma consulta SQL.
+    
+    Use esta ferramenta quando precisar executar consultas SQL personalizadas
+    no banco de dados.
+    
+    Args:
+        request: Objeto contendo a consulta SQL e parâmetros opcionais
+        
+    Returns:
+        Dicionário contendo os resultados da consulta
+    """
     cursor = conn.cursor()
     try:
         if request.params:
@@ -83,10 +108,21 @@ async def query(request: QueryRequest) -> Dict:
     except sqlite3.Error as e:
         return {"error": str(e)}
 
+
 @mcp.tool()
-async def ask(question: str) -> Dict:
-    """Answer questions about the data using natural language."""
-    # Map common questions to SQL queries
+async def ask(question: str) -> Dict[str, Any]:
+    """Responde perguntas sobre os dados usando linguagem natural.
+    
+    Use esta ferramenta quando quiser fazer perguntas em linguagem natural
+    sobre os dados no banco de dados.
+    
+    Args:
+        question: A pergunta em linguagem natural
+        
+    Returns:
+        Dicionário contendo os resultados da consulta correspondente
+    """
+    # Mapear perguntas comuns para consultas SQL
     queries = {
         "albums by queen": """
             SELECT Album.Title, Artist.Name
@@ -129,13 +165,13 @@ async def ask(question: str) -> Dict:
         """
     }
     
-    # Try to find a matching query
+    # Tentar encontrar uma consulta correspondente
     question = question.lower()
     for key, sql in queries.items():
         if key in question:
             return await query(QueryRequest(query=sql))
     
-    # Default to a simple search across tables
+    # Padrão para uma pesquisa simples entre tabelas
     search_term = "%" + "%".join(question.split()) + "%"
     return await query(QueryRequest(
         query="""
@@ -152,38 +188,38 @@ async def ask(question: str) -> Dict:
         params=[search_term, search_term, search_term]
     ))
 
-# HTTP endpoints
+
+# Endpoints HTTP
 app = FastAPI()
 
+
 @app.get("/tables")
-async def http_list_tables():
-    """List all tables via HTTP."""
+async def http_list_tables() -> Dict[str, List[str]]:
+    """Lista todas as tabelas via HTTP."""
     return await list_tables()
 
+
 @app.get("/schema/{table}")
-async def http_get_schema(table: str):
-    """Get table schema via HTTP."""
+async def http_get_schema(table: str) -> Dict[str, Any]:
+    """Obtém esquema da tabela via HTTP."""
     return await get_schema(table)
 
+
 @app.post("/query")
-async def http_query(request: QueryRequest):
-    """Execute query via HTTP."""
+async def http_query(request: QueryRequest) -> Dict[str, Any]:
+    """Executa consulta via HTTP."""
     return await query(request)
 
-# Add web client
+
+# Adicionar cliente web
 mcp.add_web_client()
 
+
 if __name__ == "__main__":
-    # Certifique-se de fechar conexões ao encerrar
+    # Executar servidor e garantir limpeza adequada
     try:
         mcp.run()
     finally:
-        # Ensure database connections are closed
-        for alias, conn_info in list(db_connections.items()):
-            try:
-                conn_info["connection"].close()
-            except:
-                pass
-        # Close the main connection
+        # Garantir que a conexão com o banco de dados seja fechada
         if conn:
             conn.close()

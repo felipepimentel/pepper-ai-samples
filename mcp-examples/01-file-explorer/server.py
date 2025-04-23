@@ -7,7 +7,7 @@ Demonstra como criar um servidor MCP para exploração de sistema de arquivos.
 import datetime
 import os
 import stat
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pepperpymcp import PepperFastMCP
 
@@ -251,25 +251,20 @@ def get_file_info(path: str) -> Dict[str, Any]:
             "path": os.path.abspath(path),
             "type": item_type,
             "size": stats.st_size,
+            "modified": modified_time,
+            "accessed": access_time,
+            "created": create_time,
             "permissions": permissions,
-            "modified_time": modified_time,
-            "access_time": access_time,
-            "create_time": create_time,
-            "uid": stats.st_uid,
-            "gid": stats.st_gid,
-            "exists": True,
+            "user_id": stats.st_uid,
+            "group_id": stats.st_gid,
         }
 
-        # Adicionar detalhes específicos para diretórios
+        # Se for um diretório, adicionar contagem de itens
         if item_type == "directory":
             try:
                 result["item_count"] = len(os.listdir(path))
             except PermissionError:
-                result["item_count"] = "Permissão negada"
-
-        # Adicionar informações de extensão para arquivos
-        if item_type == "file":
-            result["extension"] = os.path.splitext(path)[1].lower()
+                result["item_count"] = None
 
         return result
     except (FileNotFoundError, PermissionError) as e:
@@ -278,18 +273,73 @@ def get_file_info(path: str) -> Dict[str, Any]:
         raise RuntimeError(f"Erro ao obter informações: {str(e)}")
 
 
-@mcp.resource("file://{path}")
-def file_resource(path: str) -> str:
-    """Acessa um arquivo como recurso.
+@mcp.tool()
+def delete_item(path: str, recursive: bool = False) -> Dict[str, Any]:
+    """Exclui um arquivo ou diretório.
 
-    Use este recurso para acessar o conteúdo de um arquivo via URI no formato file://{path}.
+    Use esta ferramenta quando precisar remover um arquivo ou diretório
+    do sistema de arquivos.
 
     Exemplos de uso:
-    - file://arquivo.txt  →  Acessa o conteúdo de arquivo.txt
-    - file:///home/user/documento.md  →  Acessa um arquivo com caminho absoluto
+    - delete_item("arquivo.txt")  →  Remove o arquivo.txt
+    - delete_item("/caminho/diretorio", True)  →  Remove o diretório e seu conteúdo
 
     Args:
-        path: Caminho para o arquivo a ser acessado
+        path: Caminho do arquivo ou diretório a ser excluído
+        recursive: Se True, remove diretórios não vazios (padrão: False)
+
+    Returns:
+        Dicionário com informações sobre a operação
+
+    Raises:
+        FileNotFoundError: Se o arquivo/diretório não existir
+        PermissionError: Se não tiver permissão para excluir
+        IsADirectoryError: Se tentar excluir um diretório não vazio sem recursive=True
+    """
+    try:
+        # Verificar se o caminho existe
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"O caminho '{path}' não existe")
+
+        # Se for um diretório
+        if os.path.isdir(path):
+            if recursive:
+                import shutil
+                shutil.rmtree(path)
+            else:
+                os.rmdir(path)  # Isso falha se o diretório não estiver vazio
+        else:
+            # É um arquivo ou link simbólico
+            os.remove(path)
+
+        return {
+            "success": True,
+            "path": path,
+            "message": f"{'Diretório' if os.path.isdir(path) else 'Arquivo'} excluído com sucesso",
+        }
+    except (FileNotFoundError, PermissionError) as e:
+        raise e
+    except OSError as e:
+        if os.path.isdir(path):
+            raise IsADirectoryError(
+                f"Diretório '{path}' não está vazio. Use recursive=True para excluir."
+            )
+        raise RuntimeError(f"Erro ao excluir: {str(e)}")
+
+
+@mcp.resource("file://{path}")
+def file_resource(path: str) -> str:
+    """Acessar o conteúdo de um arquivo como um recurso MCP.
+
+    Este recurso permite acessar arquivos do sistema diretamente como recursos MCP.
+    O URI deve estar no formato file://{path}, onde {path} é o caminho do arquivo.
+
+    Exemplos de uso:
+    - file:///etc/hosts  →  Acessa o arquivo /etc/hosts
+    - file://./config.json  →  Acessa o arquivo config.json no diretório atual
+
+    Args:
+        path: Caminho do arquivo a ser acessado
 
     Returns:
         O conteúdo do arquivo como string
@@ -299,80 +349,78 @@ def file_resource(path: str) -> str:
         PermissionError: Se não tiver permissão para ler o arquivo
     """
     try:
+        path = path.replace("file://", "")
+        
         if not os.path.isfile(path):
-            return f"Erro: O arquivo '{path}' não existe ou não é um arquivo regular."
-
+            raise FileNotFoundError(f"O arquivo '{path}' não existe")
+        
         with open(path, "r", encoding="utf-8") as file:
             return file.read()
     except UnicodeDecodeError:
-        return "[Arquivo binário ou codificação não suportada]"
-    except Exception as e:
-        return f"Erro ao ler arquivo: {str(e)}"
+        return "[Arquivo binário - conteúdo não exibido]"
 
 
 @mcp.prompt()
 async def file_summary(path: str) -> str:
-    """Gera um resumo do conteúdo de um arquivo.
+    """Gera um resumo das informações de um arquivo ou diretório.
 
-    Use este prompt quando precisar de um resumo formatado do conteúdo
-    de um arquivo, incluindo estatísticas como contagem de linhas.
+    Use este prompt quando precisar de uma descrição em linguagem natural
+    das informações de um arquivo ou diretório.
 
     Exemplos de uso:
-    - file_summary("arquivo.py")  →  Resumo do conteúdo de arquivo.py
+    - file_summary("arquivo.txt")  →  Resumo do arquivo.txt
+    - file_summary("/caminho/para/diretório")  →  Resumo do diretório
 
     Args:
-        path: Caminho para o arquivo a ser resumido
+        path: Caminho do arquivo ou diretório
 
     Returns:
-        Um resumo formatado do arquivo
+        Resumo em texto das informações do arquivo ou diretório
     """
     try:
-        if not os.path.isfile(path):
-            return f"O arquivo '{path}' não existe ou não é um arquivo regular."
-
-        size = os.path.getsize(path)
-        stats = os.stat(path)
-        modified = datetime.datetime.fromtimestamp(stats.st_mtime).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-
-        # Tentar ler o arquivo
-        try:
-            with open(path, "r", encoding="utf-8") as file:
-                content = file.read()
-                lines = content.split("\n")
-                line_count = len(lines)
-
-                # Limitar o conteúdo para o resumo
-                preview = "\n".join(lines[:10])
-                if line_count > 10:
-                    preview += f"\n... (mais {line_count - 10} linhas)"
-
-                return f"""
-# Resumo do Arquivo: {os.path.basename(path)}
-
-Caminho: {os.path.abspath(path)}
-Tamanho: {size} bytes
-Modificado: {modified}
-Linhas: {line_count}
-
-## Prévia do conteúdo:
-```
-{preview}
-```
-"""
-        except UnicodeDecodeError:
-            return f"""
-# Resumo do Arquivo: {os.path.basename(path)}
-
-Caminho: {os.path.abspath(path)}
-Tamanho: {size} bytes
-Modificado: {modified}
-Tipo: Arquivo binário (não é possível mostrar prévia)
-"""
+        info = get_file_info(path)
+        
+        # Determinar o tipo
+        item_type = info["type"]
+        
+        if item_type == "directory":
+            items = list_directory(path)
+            num_files = sum(1 for item in items if item["type"] == "file")
+            num_dirs = sum(1 for item in items if item["type"] == "directory")
+            
+            return mcp.get_template("directory_summary").format(
+                path=info["path"],
+                item_count=info["item_count"],
+                num_files=num_files,
+                num_dirs=num_dirs,
+                modified=info["modified"]
+            )
+        elif item_type == "file":
+            file_info = read_file(path)
+            
+            # Se o arquivo for muito grande, não incluir o conteúdo
+            content_preview = None
+            if file_info["type"] == "text" and file_info["size"] < 1024:
+                content_preview = file_info["content"]
+            
+            return mcp.get_template("file_summary").format(
+                name=info["name"],
+                path=info["path"],
+                size=info["size"],
+                modified=info["modified"],
+                type=file_info["type"],
+                preview=content_preview if content_preview else "[Conteúdo muito grande para exibição]"
+            )
+        else:
+            return f"Item de tipo desconhecido: {item_type}"
     except Exception as e:
-        return f"Erro ao gerar resumo do arquivo: {str(e)}"
+        return f"Erro ao gerar resumo: {str(e)}"
+
+
+# Adicionar cliente web
+mcp.add_web_client()
 
 
 if __name__ == "__main__":
+    # Executar servidor (sem necessidade de código de limpeza específico)
     mcp.run()

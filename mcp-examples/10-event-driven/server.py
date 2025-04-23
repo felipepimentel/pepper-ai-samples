@@ -295,6 +295,10 @@ app = FastAPI(title="Event-Driven Architecture Assistant")
 mcp.add_web_client()
 
 if __name__ == "__main__":
-    import uvicorn
+    try:
+        import uvicorn
+        mcp.run()
+    finally:
+        # Cleanup code 
+        pass
 
-    uvicorn.run("server:app", host="0.0.0.0", port=8010, reload=True)

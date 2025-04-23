@@ -487,40 +487,81 @@ class PepperFastMCP:
 
     def run(self, *args, **kwargs):
         """
-        Run the server with the direct uvicorn+asyncio approach that's compatible with UV.
+        Run the server with UV-compatible approach.
         
-        This method handles signals for graceful shutdown and ensures
-        all resources are properly cleaned up when the server exits.
+        This method detects the appropriate mode (stdio or HTTP) and runs the server accordingly.
+        The method handles signals for graceful shutdown and ensures all resources are 
+        properly cleaned up when the server exits.
+        
+        Args:
+            *args: Positional arguments passed to the underlying server
+            **kwargs: Keyword arguments including:
+                - stdio: Force stdio mode
+                - host: Host address for HTTP server (default: "0.0.0.0")
+                - port: Port for HTTP server (default: 8000)
+                - log_level: Logging level (default: "info")
+        
+        Returns:
+            None
         """
-        import uvicorn
+        # Determine if we should run in stdio mode
+        use_stdio = kwargs.get("stdio", False) or "--stdio" in sys.argv
         
-        print(f"Starting {self._mcp.name} MCP Server")
-        
-        # Initialize shutdown event
-        self._shutdown_event = asyncio.Event()
-        
-        async def run_server():
-            config = uvicorn.Config(app=self._mcp.app, host=kwargs.get("host", "0.0.0.0"), 
-                                  port=kwargs.get("port", 8000), log_level=kwargs.get("log_level", "info"))
-            server = uvicorn.Server(config)
+        if use_stdio:
+            print(f"Starting {self._mcp.name} MCP Server in stdio mode")
+            return asyncio.run(self._run_stdio())
+        else:
+            import uvicorn
+            
+            print(f"Starting {self._mcp.name} MCP Server in HTTP mode")
+            
+            # Initialize shutdown event
+            self._shutdown_event = asyncio.Event()
+            
+            async def run_server():
+                config = uvicorn.Config(
+                    app=self._mcp.app, 
+                    host=kwargs.get("host", "0.0.0.0"), 
+                    port=kwargs.get("port", 8000), 
+                    log_level=kwargs.get("log_level", "info")
+                )
+                server = uvicorn.Server(config)
+                try:
+                    await server.serve()
+                except asyncio.CancelledError:
+                    logger.info("Server task cancelled")
+                finally:
+                    # Set shutdown event and handle cleanup
+                    if hasattr(self, "_shutdown_event"):
+                        self._shutdown_event.set()
+                    await self._handle_shutdown()
+            
             try:
-                await server.serve()
-            except asyncio.CancelledError:
-                logger.info("Server task cancelled")
-            finally:
-                # Set shutdown event and handle cleanup
-                if hasattr(self, "_shutdown_event"):
-                    self._shutdown_event.set()
-                await self._handle_shutdown()
+                # Run with direct asyncio call - always use this approach for UV compatibility
+                return asyncio.run(run_server())
+            except KeyboardInterrupt:
+                logger.info("Received keyboard interrupt, shutting down")
+                return None
+            except Exception as e:
+                logger.error(f"Error running server: {str(e)}")
+                raise
+    
+    async def _run_stdio(self):
+        """Run the server in stdio mode."""
+        logger.info(f"Running {self._mcp.name} in stdio mode")
         
         try:
-            # Run with direct asyncio call - always use this approach for UV compatibility
-            return asyncio.run(run_server())
-        except KeyboardInterrupt:
-            logger.info("Received keyboard interrupt, shutting down")
-            return None
+            # Try to use the run_stdio_async method if available
+            if hasattr(self._mcp, "run_stdio_async"):
+                return await self._mcp.run_stdio_async()
+            
+            # Fall back to the run method with stdio=True
+            return await self._mcp.run(stdio=True)
+        except asyncio.CancelledError:
+            logger.info("Server task cancelled")
+            raise
         except Exception as e:
-            logger.error(f"Error running server: {str(e)}")
+            logger.error(f"Error running stdio server: {str(e)}")
             raise
 
     # Context manager support for graceful shutdown
