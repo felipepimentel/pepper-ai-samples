@@ -189,4 +189,5 @@ async def get_greeting(name: str):
 
 
 if __name__ == "__main__":
-    mcp.run()
+    # Support both HTTP and stdio modes
+    mcp.run()  # Supports both HTTP and stdio modes

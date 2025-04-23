@@ -485,6 +485,92 @@ class PepperFastMCP:
             logger.info("Server task cancelled")
             raise
 
+    async def _run_stdio(self):
+        """Run the server in stdio mode."""
+        logger.info(f"Running {self._mcp.name} in stdio mode")
+        
+        # Initialize shutdown event
+        self._shutdown_event = asyncio.Event()
+        
+        # Set up signal handlers for graceful shutdown
+        loop = asyncio.get_running_loop()
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._stdio_signal_handler(s)))
+        
+        server_task = None
+        try:
+            # Start server task
+            # Try to use the run_stdio_async method if available
+            if hasattr(self._mcp, "run_stdio_async"):
+                server_task = asyncio.create_task(self._mcp.run_stdio_async())
+            else:
+                # Fall back to the run method with stdio=True
+                server_task = asyncio.create_task(self._mcp.run(stdio=True))
+            
+            # Wait for either shutdown event or server task completion
+            shutdown_task = asyncio.create_task(self._shutdown_event.wait())
+            done, pending = await asyncio.wait(
+                [shutdown_task, server_task],
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            # Cancel server task if shutdown was triggered
+            if server_task in pending:
+                server_task.cancel()
+                try:
+                    await server_task
+                except asyncio.CancelledError:
+                    logger.info("Server task cancelled")
+            
+            # If shutdown was triggered directly, allow exit
+            if shutdown_task in done:
+                return  # Let the finally block run, then exit
+            
+        except asyncio.CancelledError:
+            logger.info("Server task cancelled")
+            if server_task and not server_task.done():
+                server_task.cancel()
+        except Exception as e:
+            logger.error(f"Error running stdio server: {str(e)}")
+            raise
+        finally:
+            # Clean up signal handlers
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                try:
+                    loop.remove_signal_handler(sig)
+                except Exception:
+                    pass
+            
+            # Perform cleanup
+            await self._handle_shutdown()
+            
+            # Explicitly release stdin/stdout references
+            try:
+                sys.stdout.flush()
+                sys.stderr.flush()
+            except Exception:
+                pass
+
+    async def _stdio_signal_handler(self, sig):
+        """Handle signals for stdio mode gracefully.
+        
+        Args:
+            sig: Signal number
+        """
+        if not self._shutdown_event.is_set():
+            logger.info(f"Received signal {sig.name}, initiating shutdown")
+            self._shutdown_event.set()
+            
+            # Give tasks a chance to clean up
+            await asyncio.sleep(0.5)
+            
+            # Instead of sys.exit(), just let the event finish naturally
+            if sig == signal.SIGINT:
+                logger.info("Exiting due to keyboard interrupt")
+                # Force exit after cleanup is complete (in 0.5 sec)
+                loop = asyncio.get_running_loop()
+                loop.call_later(1.0, lambda: os._exit(0))
+
     def run(self, *args, **kwargs):
         """
         Run the server with UV-compatible approach.
@@ -509,7 +595,30 @@ class PepperFastMCP:
         
         if use_stdio:
             print(f"Starting {self._mcp.name} MCP Server in stdio mode")
-            return asyncio.run(self._run_stdio())
+            try:
+                # Using asyncio.run with debug=False helps with proper cleanup
+                asyncio.run(self._run_stdio(), debug=False)
+                
+                # Force exit if we somehow get here without exiting
+                os._exit(0)
+            except KeyboardInterrupt:
+                # This should not usually happen because of our signal handler
+                logger.info("Keyboard interrupt received, forcing exit")
+                os._exit(0)
+            except asyncio.CancelledError:
+                logger.info("Asyncio task cancelled, forcing exit")
+                os._exit(0)
+            except Exception as e:
+                logger.error(f"Error in stdio mode: {str(e)}")
+                # Reraise only if it's not a controlled exit
+                if not isinstance(e, SystemExit):
+                    raise
+                os._exit(0)
+            finally:
+                # Final cleanup for UV compatibility
+                sys.stdout.flush()
+                sys.stderr.flush()
+                os._exit(0)  # Last resort exit
         else:
             import uvicorn
             
@@ -546,24 +655,6 @@ class PepperFastMCP:
                 logger.error(f"Error running server: {str(e)}")
                 raise
     
-    async def _run_stdio(self):
-        """Run the server in stdio mode."""
-        logger.info(f"Running {self._mcp.name} in stdio mode")
-        
-        try:
-            # Try to use the run_stdio_async method if available
-            if hasattr(self._mcp, "run_stdio_async"):
-                return await self._mcp.run_stdio_async()
-            
-            # Fall back to the run method with stdio=True
-            return await self._mcp.run(stdio=True)
-        except asyncio.CancelledError:
-            logger.info("Server task cancelled")
-            raise
-        except Exception as e:
-            logger.error(f"Error running stdio server: {str(e)}")
-            raise
-
     # Context manager support for graceful shutdown
     async def __aenter__(self):
         """Async context manager entry."""

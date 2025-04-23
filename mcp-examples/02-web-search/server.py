@@ -394,7 +394,8 @@ mcp.add_web_client()
 
 if __name__ == "__main__":
     try:
-        mcp.run()
+        # Support both HTTP and stdio modes
+    mcp.run()  # Supports both HTTP and stdio modes
     finally:
         # Não são necessárias ações específicas de limpeza para este exemplo
         pass

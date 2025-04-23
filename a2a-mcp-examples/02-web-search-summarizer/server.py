@@ -24,7 +24,7 @@ import httpx
 
 # Import the A2A-MCP Bridge
 from a2a_mcp_bridge import create_a2a_mcp_bridge
-from common.transport import SimpleMCP
+from common.transport import PepperFastMCP
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -62,7 +62,7 @@ templates_dir = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(templates_dir))
 
 # Initialize MCP server for web search
-mcp_server = SimpleMCP(
+mcp_server = PepperFastMCP(
     name="Web Search MCP",
     description="MCP server with web search capabilities",
 )

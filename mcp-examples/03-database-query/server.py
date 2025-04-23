@@ -218,7 +218,8 @@ mcp.add_web_client()
 if __name__ == "__main__":
     # Executar servidor e garantir limpeza adequada
     try:
-        mcp.run()
+        # Support both HTTP and stdio modes
+    mcp.run()  # Supports both HTTP and stdio modes
     finally:
         # Garantir que a conexão com o banco de dados seja fechada
         if conn:

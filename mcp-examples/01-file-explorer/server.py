@@ -423,4 +423,5 @@ mcp.add_web_client()
 
 if __name__ == "__main__":
     # Executar servidor (sem necessidade de código de limpeza específico)
-    mcp.run()
+    # Support both HTTP and stdio modes
+    mcp.run()  # Supports both HTTP and stdio modes
