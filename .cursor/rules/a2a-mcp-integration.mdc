@@ -1,0 +1,623 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# A2A-MCP Integration Pattern
+
+This document outlines the core patterns for integrating the Agent-to-Agent (A2A) protocol with the Model Context Protocol (MCP) to create powerful AI systems that leverage the strengths of both protocols.
+
+## Introduction
+
+The A2A-MCP integration pattern combines two complementary protocols:
+
+1. **Agent-to-Agent (A2A) Protocol**: Enables AI agents to discover and invoke capabilities from one another, creating a network of specialized agents.
+
+2. **Model Context Protocol (MCP)**: Provides a standardized way for AI models to access tools, resources, and context for enhanced reasoning and task execution.
+
+By integrating these protocols, we can create systems that combine the networked capability model of A2A with the rich context and resource model of MCP, enabling more powerful and flexible AI systems.
+
+## Core Components
+
+### 1. MCP Server
+
+The MCP server provides tools and resources to AI models:
+
+```python
+from common.transport import SimpleMCP
+
+# Initialize MCP server
+mcp = SimpleMCP(
+    name="Weather MCP",
+    description="Provides weather data and forecasting tools"
+)
+
+# Register tools
+@mcp.tool()
+async def get_current_weather(location: str) -> dict:
+    """Get current weather for a location"""
+    # Implementation...
+    return {
+        "location": location,
+        "temperature": 22.5,
+        "conditions": "Partly Cloudy",
+        "humidity": 65
+    }
+
+@mcp.tool()
+async def get_forecast(location: str, days: int = 5) -> dict:
+    """Get weather forecast for a location"""
+    # Implementation...
+    return {
+        "location": location,
+        "forecast": [
+            {"day": 1, "high": 24, "low": 18, "conditions": "Sunny"},
+            {"day": 2, "high": 22, "low": 17, "conditions": "Cloudy"},
+            # Additional days...
+        ][:days]
+    }
+```
+
+### 2. A2A Server
+
+The A2A server exposes capabilities to other agents:
+
+```python
+from pepperpya2a import A2AServer
+
+# Initialize A2A server
+server = A2AServer(
+    title="Weather Agent",
+    description="Provides weather information and forecasts",
+    version="1.0.0"
+)
+
+# Register capabilities
+@server.capability("getCurrentWeather")
+async def current_weather(location: str) -> dict:
+    """Get current weather for a location"""
+    # Implementation...
+    return {
+        "location": location,
+        "temperature": 22.5,
+        "conditions": "Partly Cloudy",
+        "humidity": 65
+    }
+
+@server.capability("getForecast")
+async def forecast(location: str, days: int = 5) -> dict:
+    """Get weather forecast for a location"""
+    # Implementation...
+    return {
+        "location": location,
+        "forecast": [
+            {"day": 1, "high": 24, "low": 18, "conditions": "Sunny"},
+            {"day": 2, "high": 22, "low": 17, "conditions": "Cloudy"},
+            # Additional days...
+        ][:days]
+    }
+```
+
+### 3. A2A-MCP Bridge
+
+The bridge connects the two protocols, enabling:
+- A2A capabilities to use MCP tools
+- MCP tools to invoke A2A capabilities
+
+```python
+from pepperpya2a import A2AServer, A2AClient
+from pepperpymcp import MCPClient
+from common.transport import SimpleMCP
+
+# Initialize A2A server that uses MCP tools
+a2a_server = A2AServer(
+    title="Weather Bridge",
+    description="Exposes MCP weather tools as A2A capabilities",
+    version="1.0.0"
+)
+
+# Initialize MCP client
+mcp_client = MCPClient("http://weather-mcp:8000")
+await mcp_client.initialize()
+
+# A2A capability that uses MCP tool
+@a2a_server.capability("getCurrentWeather")
+async def current_weather(location: str) -> dict:
+    """Get current weather using MCP tool"""
+    result = await mcp_client.call_tool(
+        "get_current_weather",
+        location=location
+    )
+    return result
+
+# MCP server that uses A2A capabilities
+mcp_server = SimpleMCP(
+    name="A2A Bridge",
+    description="Exposes A2A capabilities as MCP tools"
+)
+
+# Initialize A2A client
+a2a_client = A2AClient("http://weather-agent:9000")
+
+# MCP tool that uses A2A capability
+@mcp_server.tool()
+async def get_weather_forecast(location: str, days: int = 5) -> dict:
+    """Get weather forecast using A2A capability"""
+    result = await a2a_client.invoke_capability(
+        "getForecast",
+        {"location": location, "days": days}
+    )
+    return result
+```
+
+## Integration Patterns
+
+### 1. Direct Bridge
+
+In this pattern, a single component acts as both an A2A server and an MCP client (or vice versa), directly bridging the two protocols:
+
+```python
+from pepperpya2a import A2AServer
+from pepperpymcp import MCPClient
+
+# Direct bridge: A2A server using MCP tools
+server = A2AServer(
+    title="Weather Bridge",
+    description="Bridges weather MCP tools to A2A",
+    version="1.0.0"
+)
+
+# Initialize MCP client
+mcp_client = MCPClient("http://weather-mcp:8000")
+await mcp_client.initialize()
+
+# A2A capabilities that use MCP tools
+@server.capability("getCurrentWeather")
+async def current_weather(location: str) -> dict:
+    """Get current weather using MCP tool"""
+    return await mcp_client.call_tool(
+        "get_current_weather",
+        location=location
+    )
+
+@server.capability("getForecast")
+async def forecast(location: str, days: int = 5) -> dict:
+    """Get forecast using MCP tool"""
+    return await mcp_client.call_tool(
+        "get_forecast",
+        location=location,
+        days=days
+    )
+
+# Run the server
+if __name__ == "__main__":
+    server.run(host="0.0.0.0", port=9000)
+```
+
+### 2. Proxy Pattern
+
+In this pattern, one protocol is entirely proxied through the other, making all capabilities available through either interface:
+
+```python
+from pepperpya2a import A2AServer, A2AClient
+from common.transport import SimpleMCP
+from pepperpymcp import MCPClient
+
+# A2A Proxy: Exposes all MCP tools as A2A capabilities
+async def create_a2a_proxy():
+    # Initialize A2A server
+    server = A2AServer(
+        title="MCP Proxy",
+        description="Exposes all MCP tools as A2A capabilities",
+        version="1.0.0"
+    )
+    
+    # Initialize MCP client
+    mcp_client = MCPClient("http://mcp-server:8000")
+    await mcp_client.initialize()
+    
+    # Get available MCP tools
+    tools = await mcp_client.list_tools()
+    
+    # Dynamically register A2A capabilities for each MCP tool
+    for tool in tools["tools"]:
+        tool_name = tool["name"]
+        
+        # Create a capability function that calls the MCP tool
+        async def proxy_tool(**params):
+            return await mcp_client.call_tool(tool_name, **params)
+        
+        # Register the capability
+        server.register_capability(tool_name, proxy_tool)
+    
+    return server
+
+# MCP Proxy: Exposes all A2A capabilities as MCP tools
+async def create_mcp_proxy():
+    # Initialize MCP server
+    mcp = SimpleMCP(
+        name="A2A Proxy",
+        description="Exposes all A2A capabilities as MCP tools"
+    )
+    
+    # Initialize A2A client
+    a2a_client = A2AClient("http://a2a-server:9000")
+    
+    # Get available A2A capabilities
+    manifest = await a2a_client.get_manifest()
+    
+    # Dynamically register MCP tools for each A2A capability
+    for capability_name, capability in manifest["capabilities"].items():
+        
+        # Create a tool function that calls the A2A capability
+        async def proxy_capability(**params):
+            return await a2a_client.invoke_capability(
+                capability_name,
+                params
+            )
+        
+        # Register the tool
+        mcp.register_tool(capability_name, proxy_capability)
+    
+    return mcp
+```
+
+### 3. Orchestration Pattern
+
+In this pattern, a component orchestrates interactions between multiple A2A and MCP servers, routing requests and composing capabilities:
+
+```python
+from pepperpya2a import A2AServer, A2AClient
+from pepperpymcp import MCPClient
+from common.transport import SimpleMCP
+
+class OrchestrationBridge:
+    """Orchestrates interactions between A2A and MCP services"""
+    
+    def __init__(self):
+        # A2A clients
+        self.weather_client = A2AClient("http://weather-agent:9000")
+        self.search_client = A2AClient("http://search-agent:9000")
+        
+        # MCP clients
+        self.analysis_client = MCPClient("http://analysis-mcp:8000")
+        self.visualization_client = MCPClient("http://visualization-mcp:8000")
+        
+        # Initialize A2A server
+        self.a2a_server = A2AServer(
+            title="Orchestration Bridge",
+            description="Orchestrates A2A and MCP services",
+            version="1.0.0"
+        )
+        
+        # Initialize MCP server
+        self.mcp_server = SimpleMCP(
+            name="Orchestration Bridge",
+            description="Orchestrates A2A and MCP services"
+        )
+        
+        # Register orchestrated capabilities
+        self.register_capabilities()
+        self.register_tools()
+    
+    def register_capabilities(self):
+        @self.a2a_server.capability("getWeatherAnalysis")
+        async def weather_analysis(location: str) -> dict:
+            """Get weather with analysis"""
+            # Get weather data from A2A
+            weather = await self.weather_client.invoke_capability(
+                "getCurrentWeather",
+                {"location": location}
+            )
+            
+            # Analyze data with MCP
+            analysis = await self.analysis_client.call_tool(
+                "analyze_weather_patterns",
+                data=weather
+            )
+            
+            # Combine results
+            return {
+                "weather": weather,
+                "analysis": analysis
+            }
+    
+    def register_tools(self):
+        @self.mcp_server.tool()
+        async def search_and_visualize(query: str) -> dict:
+            """Search for data and create visualization"""
+            # Search using A2A
+            results = await self.search_client.invoke_capability(
+                "search",
+                {"query": query}
+            )
+            
+            # Create visualization using MCP
+            visualization = await self.visualization_client.call_tool(
+                "create_visualization",
+                data=results["results"]
+            )
+            
+            # Combine results
+            return {
+                "results": results,
+                "visualization": visualization
+            }
+
+# Create and run the bridge
+async def main():
+    bridge = OrchestrationBridge()
+    
+    # Initialize MCP clients
+    await bridge.analysis_client.initialize()
+    await bridge.visualization_client.initialize()
+    
+    # Run servers
+    bridge.a2a_server.run(host="0.0.0.0", port=9000)
+    bridge.mcp_server.run(host="0.0.0.0", port=8000)
+```
+
+## Benefits of Integration
+
+### 1. Complementary Strengths
+
+A2A and MCP have complementary strengths:
+
+- **A2A** excels at agent discovery, capability invocation, and agent networks
+- **MCP** excels at resource management, context sharing, and model interaction
+
+Integrating them creates systems that benefit from both models.
+
+### 2. Composability
+
+The integration enables composition across protocols:
+
+- A2A capabilities can be composed with MCP tools
+- MCP resources can be accessed from A2A capabilities
+- Complex workflows can span both protocols
+
+### 3. Flexibility
+
+Different integration patterns provide flexibility:
+
+- Direct Bridge: Simple point-to-point integration
+- Proxy: Full exposure of one protocol through another
+- Orchestration: Complex workflows across multiple services
+
+## Implementation Considerations
+
+### 1. Security
+
+When integrating A2A and MCP, consider:
+
+- **Authentication**: Secure authentication between protocols
+- **Authorization**: Proper access control for capabilities and tools
+- **Data validation**: Validate inputs/outputs across protocol boundaries
+
+```python
+# Example: Adding authentication to bridge
+from pepperpya2a import A2AServer, A2AClient
+from pepperpymcp import MCPClient
+
+# Configure clients with authentication
+a2a_client = A2AClient(
+    "http://a2a-server:9000",
+    auth=("username", "password")
+)
+
+mcp_client = MCPClient(
+    "http://mcp-server:8000",
+    headers={"Authorization": "Bearer token123"}
+)
+
+# Server with authentication middleware
+server = A2AServer(
+    title="Secure Bridge",
+    description="Secure A2A-MCP bridge",
+    version="1.0.0"
+)
+
+# Add authentication middleware
+@server.middleware
+async def auth_middleware(request, call_next):
+    # Check authorization header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return {"error": "Unauthorized", "status_code": 401}
+    
+    # Extract and validate token
+    token = auth_header.replace("Bearer ", "")
+    if not validate_token(token):
+        return {"error": "Invalid token", "status_code": 401}
+    
+    # Continue processing
+    return await call_next(request)
+```
+
+### 2. Error Handling
+
+Implement robust error handling across protocol boundaries:
+
+```python
+@a2a_server.capability("weatherForecast")
+async def weather_forecast(location: str, days: int = 5) -> dict:
+    """Get weather forecast using MCP tool"""
+    try:
+        result = await mcp_client.call_tool(
+            "get_forecast",
+            location=location,
+            days=days
+        )
+        return result
+    except Exception as e:
+        # Transform MCP error to A2A error format
+        return {
+            "error": {
+                "code": "FORECAST_ERROR",
+                "message": str(e),
+                "details": {
+                    "location": location,
+                    "source": "mcp_tool"
+                }
+            }
+        }
+```
+
+### 3. Performance
+
+Consider performance implications:
+
+- **Latency**: Cross-protocol calls add latency
+- **Caching**: Cache results when appropriate
+- **Batching**: Batch requests when possible
+
+```python
+from functools import lru_cache
+
+class CachingBridge:
+    def __init__(self):
+        self.a2a_client = A2AClient("http://a2a-server:9000")
+        self.mcp_client = MCPClient("http://mcp-server:8000")
+    
+    @lru_cache(maxsize=100, ttl=300)  # Cache for 5 minutes
+    async def get_weather(self, location: str) -> dict:
+        """Get cached weather data"""
+        return await self.a2a_client.invoke_capability(
+            "getCurrentWeather",
+            {"location": location}
+        )
+    
+    async def batch_process(self, locations: list) -> dict:
+        """Process multiple locations in one request"""
+        tasks = [self.get_weather(loc) for loc in locations]
+        results = await asyncio.gather(*tasks)
+        return {loc: result for loc, result in zip(locations, results)}
+```
+
+## Future Directions
+
+### 1. Bi-directional Subscriptions
+
+Enable subscriptions across protocols:
+
+- Subscribe to A2A capability updates from MCP
+- Subscribe to MCP resource updates from A2A
+
+```python
+# MCP subscription to A2A updates
+async def subscribe_to_a2a():
+    await mcp_client.register_subscription(
+        "a2a://weather-agent/current/london",
+        callback=on_weather_update
+    )
+
+# A2A subscription to MCP updates
+async def subscribe_to_mcp():
+    await a2a_client.subscribe(
+        "resource://weather/current",
+        callback=on_resource_update
+    )
+```
+
+### 2. Enhanced Metadata Propagation
+
+Preserve and enhance metadata across protocol boundaries:
+
+```python
+async def get_weather_with_metadata(location: str) -> dict:
+    # Get data from MCP
+    result = await mcp_client.call_tool("get_weather", location=location)
+    
+    # Extract and enhance metadata
+    metadata = result.get("metadata", {})
+    enhanced_metadata = {
+        **metadata,
+        "source": "mcp_weather_tool",
+        "bridge_timestamp": datetime.now().isoformat(),
+        "protocol": "MCP-to-A2A"
+    }
+    
+    # Return with enhanced metadata
+    return {
+        "data": result["data"],
+        "metadata": enhanced_metadata
+    }
+```
+
+### 3. Cross-Protocol Resource Sharing
+
+Share resources seamlessly across protocols:
+
+```python
+# Expose MCP resources as A2A resources
+@a2a_server.resource("weather://{location}")
+async def weather_resource(location: str) -> bytes:
+    # Get resource from MCP
+    resource = await mcp_client.get_resource(f"data://weather/{location}")
+    return resource["content"]
+
+# Use A2A capabilities to generate MCP resources
+@mcp_server.resource("forecast://{location}")
+async def forecast_resource(location: str) -> bytes:
+    # Get data from A2A
+    forecast = await a2a_client.invoke_capability(
+        "getForecast",
+        {"location": location}
+    )
+    
+    # Convert to resource format
+    return json.dumps(forecast).encode()
+```
+
+### 4. Standardized Orchestration Patterns
+
+Develop standard patterns for orchestrating A2A and MCP services:
+
+```python
+class StandardBridge:
+    """Standard bridge implementing A2A-MCP integration patterns"""
+    
+    @classmethod
+    def create_direct_bridge(cls, a2a_url, mcp_url):
+        """Create a direct bridge between A2A and MCP"""
+        # Implementation...
+        return bridge
+    
+    @classmethod
+    def create_proxy(cls, source_url, target_protocol):
+        """Create a proxy from one protocol to another"""
+        # Implementation...
+        return proxy
+    
+    @classmethod
+    def create_orchestrator(cls, config):
+        """Create an orchestrator for multiple services"""
+        # Implementation...
+        return orchestrator
+```
+
+## Example Projects
+
+### 1. Weather Integration
+
+Integrates weather data from multiple sources:
+
+- MCP server provides base weather data tools
+- A2A capabilities compose and enhance the data
+- Bridge enables seamless access from either protocol
+
+See `a2a-mcp-examples/01-a2a-mcp-integration` for implementation.
+
+### 2. Web Search Summarizer
+
+Combines search and summarization:
+
+- A2A server provides web search capabilities
+- MCP server provides text summarization tools
+- Bridge enables searching and summarizing in one operation
+
+See `a2a-mcp-examples/02-web-search-summarizer` for implementation.
+
+## Conclusion
+
+The A2A-MCP integration pattern creates powerful systems that leverage the strengths of both protocols. By following the patterns and considering the implementation details outlined in this document, you can build flexible, composable AI systems that combine agent networks with rich context and resources.

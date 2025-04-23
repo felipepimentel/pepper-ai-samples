@@ -1,0 +1,32 @@
+{
+    "name": "Weather Insights Agent",
+    "description": "Provides weather data and insights using MCP tools and A2A capabilities",
+    "url": "http://localhost:8080",
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": true,
+        "pushNotifications": false
+    },
+    "skills": [
+        {
+            "id": "getCurrentWeather",
+            "name": "Current Weather",
+            "description": "Get current weather data for a location"
+        },
+        {
+            "id": "getWeatherForecast",
+            "name": "Weather Forecast",
+            "description": "Get weather forecast for a location"
+        },
+        {
+            "id": "analyzeWeatherTrends",
+            "name": "Weather Trend Analysis",
+            "description": "Analyze weather trends and patterns"
+        },
+        {
+            "id": "generateWeatherReport",
+            "name": "Weather Report Generation",
+            "description": "Generate a comprehensive weather report"
+        }
+    ]
+}

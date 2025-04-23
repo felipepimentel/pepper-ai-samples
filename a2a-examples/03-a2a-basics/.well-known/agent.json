@@ -1,0 +1,27 @@
+{
+    "name": "Assistente Meteorológico",
+    "description": "Fornece informações sobre clima e previsões do tempo",
+    "url": "http://localhost:8000",
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": true,
+        "pushNotifications": false
+    },
+    "skills": [
+        {
+            "id": "previsao_tempo",
+            "name": "Previsão do Tempo",
+            "description": "Fornece previsão meteorológica para diferentes cidades"
+        },
+        {
+            "id": "historico_clima",
+            "name": "Histórico de Clima",
+            "description": "Fornece dados históricos de clima para uma localidade"
+        },
+        {
+            "id": "alertas_meteorologicos",
+            "name": "Alertas Meteorológicos",
+            "description": "Alerta sobre condições climáticas extremas"
+        }
+    ]
+}

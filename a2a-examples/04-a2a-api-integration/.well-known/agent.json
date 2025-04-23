@@ -1,0 +1,27 @@
+{
+    "name": "Assistente Meteorológico API",
+    "description": "Fornece informações sobre clima em tempo real usando a API OpenWeatherMap",
+    "url": "http://localhost:8000",
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": true,
+        "pushNotifications": false
+    },
+    "skills": [
+        {
+            "id": "previsao_atual",
+            "name": "Previsão Atual",
+            "description": "Fornece dados meteorológicos atuais para qualquer cidade do mundo"
+        },
+        {
+            "id": "previsao_5dias",
+            "name": "Previsão de 5 Dias",
+            "description": "Fornece previsão meteorológica para os próximos 5 dias"
+        },
+        {
+            "id": "detalhes_climaticos",
+            "name": "Detalhes Climáticos",
+            "description": "Fornece detalhes sobre umidade, vento, pressão e outros dados climáticos"
+        }
+    ]
+}

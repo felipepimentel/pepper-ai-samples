@@ -1,0 +1,330 @@
+{
+    "schema": "https://pepperos.io/schema/a2a/agent-card/v0.1",
+    "name": "Web Integration Agent",
+    "version": "0.1.0",
+    "description": "An advanced A2A agent that demonstrates web capabilities including search, image generation, and data processing",
+    "author": "Pepper AI",
+    "website": "https://pepperos.io",
+    "skills": [
+        {
+            "name": "Web Search",
+            "description": "Search the web for information and return structured results"
+        },
+        {
+            "name": "Image Generation",
+            "description": "Generate images from text descriptions"
+        },
+        {
+            "name": "Image Analysis",
+            "description": "Analyze images and extract information"
+        },
+        {
+            "name": "Expense Processing",
+            "description": "Process expense receipts and extract transaction details"
+        },
+        {
+            "name": "Currency Conversion",
+            "description": "Convert between different currencies using live exchange rates"
+        },
+        {
+            "name": "Data Visualization",
+            "description": "Create charts and graphs from data"
+        }
+    ],
+    "capabilities": {
+        "tasks": {
+            "create": {
+                "endpoint": "/tasks",
+                "method": "POST"
+            },
+            "get": {
+                "endpoint": "/tasks/{taskId}",
+                "method": "GET"
+            }
+        },
+        "messages": {
+            "send": {
+                "endpoint": "/tasks/{taskId}/send",
+                "method": "POST"
+            }
+        },
+        "files": {
+            "upload": {
+                "endpoint": "/tasks/{taskId}/upload",
+                "method": "POST",
+                "contentType": "multipart/form-data"
+            }
+        },
+        "forms": {
+            "submit": {
+                "endpoint": "/tasks/{taskId}/form",
+                "method": "POST"
+            }
+        }
+    },
+    "interfaces": {
+        "task": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique task identifier"
+                    },
+                    "sessionId": {
+                        "type": "string",
+                        "description": "Optional session identifier for related tasks"
+                    }
+                },
+                "required": [
+                    "id"
+                ]
+            }
+        },
+        "message": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "user",
+                            "assistant",
+                            "system"
+                        ],
+                        "description": "Role of the message sender"
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "text"
+                                            ]
+                                        },
+                                        "text": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "text"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "data"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "data"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "file"
+                                            ]
+                                        },
+                                        "mimeType": {
+                                            "type": "string"
+                                        },
+                                        "fileName": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "string",
+                                            "description": "Base64 encoded file data"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "mimeType",
+                                        "fileName",
+                                        "data"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "role",
+                    "parts"
+                ]
+            }
+        },
+        "artifact": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "text"
+                                            ]
+                                        },
+                                        "text": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "text"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "data"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "data"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "file"
+                                            ]
+                                        },
+                                        "mimeType": {
+                                            "type": "string"
+                                        },
+                                        "fileName": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "string",
+                                            "description": "Base64 encoded file data"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "mimeType",
+                                        "fileName",
+                                        "data"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "description",
+                    "parts"
+                ]
+            }
+        }
+    },
+    "security": {
+        "authentication": {
+            "type": "none"
+        }
+    },
+    "examples": [
+        {
+            "description": "Search the web for information",
+            "task": {
+                "id": "task_123",
+                "sessionId": "session_456"
+            },
+            "messages": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "type": "text",
+                            "text": "Search for the latest news on artificial intelligence"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "description": "Generate an image",
+            "task": {
+                "id": "task_789",
+                "sessionId": "session_456"
+            },
+            "messages": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "type": "text",
+                            "text": "Generate an image of a sunset over mountains"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "description": "Process an expense receipt",
+            "task": {
+                "id": "task_101",
+                "sessionId": "session_202"
+            },
+            "messages": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "type": "text",
+                            "text": "Extract information from this receipt"
+                        },
+                        {
+                            "type": "file",
+                            "mimeType": "image/jpeg",
+                            "fileName": "receipt.jpg",
+                            "data": "base64encodeddata..."
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

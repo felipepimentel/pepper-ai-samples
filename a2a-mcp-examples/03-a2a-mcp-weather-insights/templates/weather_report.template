@@ -1,0 +1,28 @@
+# Weather Report for {{location}}
+
+## Current Conditions
+- **Temperature**: {{current.temperature}}°C
+- **Feels Like**: {{current.feels_like}}°C
+- **Condition**: {{current.condition}}
+- **Humidity**: {{current.humidity}}%
+- **Wind**: {{current.wind_speed}} m/s, from {{current.wind_direction}}°
+- **Pressure**: {{current.pressure}} hPa
+- **Visibility**: {{current.visibility}} km
+
+## Forecast for Next {{forecast_days}} Days
+{% for day in forecast %}
+### {{day.date}}
+- **Temperature**: High {{day.temp_max}}°C / Low {{day.temp_min}}°C
+- **Condition**: {{day.condition}}
+- **Precipitation**: {{day.precipitation}}%
+- **Wind**: {{day.wind_speed}} m/s
+{% endfor %}
+
+## Insights and Analysis
+{{insights}}
+
+## Weather Trends
+{{trends}}
+
+## Recommendations
+{{recommendations}} 

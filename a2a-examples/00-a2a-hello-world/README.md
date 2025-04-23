@@ -1,85 +1,82 @@
 # A2A Hello World
 
-Este exemplo demonstra a implementação básica de um agente compatível com o protocolo A2A (Agent-to-Agent).
+A simple example demonstrating the basic concepts of the Agent-to-Agent (A2A) protocol.
 
-## O que é A2A?
+## Overview
 
-A2A (Agent-to-Agent) é um protocolo aberto desenvolvido pelo Google que permite que agentes de IA autônomos se comuniquem e colaborem entre si, independentemente das estruturas subjacentes ou fornecedores.
+This example implements a basic A2A agent that provides weather information. It demonstrates the core concepts of the A2A protocol:
 
-## Funcionalidades Demonstradas
+- Agent discovery via AgentCard
+- Task creation and management
+- Basic message sending and receiving
+- Simple interactive chat
 
-Este exemplo implementa:
+## Prerequisites
 
-1. **Descoberta de Agente**: Endpoint `.well-known/agent.json` para anunciar capacidades
-2. **Capacidades Básicas**:
-   - `greet`: Cumprimentar usuário pelo nome
-   - `chat`: Conversa com suporte a múltiplos turnos
-   - `calculate`: Realizar operações matemáticas simples
-3. **Gestão de Estado**: Demonstração de gerenciamento de estado de tarefas
-4. **Interação Multi-turno**: Exemplo de como solicitar informações adicionais do cliente
+- Python 3.10 or higher
+- uv package manager
 
-## Requisitos
-
-- Python 3.10+
-- Dependências listadas em `requirements.txt`
-
-## Instalação
+## Installation
 
 ```bash
-# Criar ambiente virtual
-python -m venv .venv
-source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+# Navigate to this directory
+cd a2a-examples/00-a2a-hello-world
 
-# Instalar dependências
-pip install -r requirements.txt
+# Create a virtual environment with uv
+uv venv
 
-# Instalar a biblioteca pepperpya2a (modo desenvolvimento)
-pip install -e ../../libs/pepperpya2a
+# Activate the virtual environment
+# On Linux/macOS:
+source .venv/bin/activate
+# On Windows:
+# .venv\Scripts\activate
+
+# Install dependencies
+uv pip install -e .
 ```
 
-## Execução
+## Running the Example
 
-### Servidor A2A
+1. Start the A2A server:
 
 ```bash
-# Iniciar o servidor
-python server.py
+# From the example directory
+uv run src/server.py
 ```
 
-O servidor A2A estará acessível em `http://localhost:8080`.
-
-### Cliente de Teste
+2. In a separate terminal, run the client:
 
 ```bash
-# Em outro terminal
-python client.py
+# Activate the virtual environment
+source .venv/bin/activate
+
+# Run the client to interact with the agent
+uv run src/client.py
 ```
 
-O cliente interativo permite testar as diferentes capacidades do agente:
-1. Testar capacidade 'greet'
-2. Testar capacidade 'chat' (conversa simples)
-3. Testar capacidade 'chat' (múltiplos turnos)
-4. Testar capacidade 'calculate'
+3. Chat with the agent by asking questions about the weather in different cities.
 
-## Endpoints A2A
+## Key Concepts
 
-- `/.well-known/agent.json`: Descoberta do agente (Agent Card)
-- `/tasks/send`: Enviar uma nova tarefa ou atualizar uma existente
-- `/tasks/get`: Obter status da tarefa
-- `/tasks/cancel`: Cancelar uma tarefa
+- **AgentCard**: Provides metadata about an agent, including its capabilities and skills
+- **Task**: A unit of work that encapsulates a conversation or interaction
+- **Message**: Communication between user and agent containing text or other content
+- **Task States**: Lifecycle stages (submitted, working, input_required, completed, failed)
 
-## Estados de Tarefa
+## A2A Protocol Structure
 
-- `in-progress`: Tarefa sendo processada
-- `completed`: Tarefa concluída com sucesso
-- `error`: Erro durante o processamento
-- `input-required`: Necessita de entrada adicional do cliente
-- `canceled`: Tarefa cancelada
+The A2A protocol follows these key endpoint patterns:
 
-## Próximos Passos
+- `/.well-known/agent.json`: Agent discovery endpoint
+- `/tasks`: Create new tasks
+- `/tasks/{task_id}`: Get task status
+- `/tasks/{task_id}/send`: Send messages to a task
 
-Após entender este exemplo básico, você pode explorar exemplos mais avançados:
+## Next Steps
 
-1. Implementação de agentes mais complexos com múltiplas capacidades
-2. Integração com o protocolo MCP para uso de ferramentas externas
-3. Desenvolvimento de sistemas multi-agentes usando A2A 
+After understanding this basic example, explore more advanced features:
+- Multi-turn conversations with context
+- Structured data exchange with DataPart
+- File handling with FilePart
+- Streaming responses
+- Multi-agent communication 

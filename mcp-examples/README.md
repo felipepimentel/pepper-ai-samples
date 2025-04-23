@@ -1,6 +1,26 @@
-# Exemplos MCP (Model Context Protocol)
+# MCP Examples
 
-Esta pasta contém exemplos de implementação usando o protocolo MCP para conectar agentes a ferramentas, APIs e recursos.
+This directory contains examples of Model Context Protocol (MCP) implementations.
+
+MCP is a protocol designed to enable AI models to interact with external tools and resources.
+
+## Examples
+
+- **00-hello-world**: Basic MCP server with tools, resources, and prompts
+- **01-file-explorer**: File system exploration
+- **02-web-search**: Web search integration
+- **03-database-query**: Database querying
+- **04-agent-system**: Agent-based system
+- **05-api-design**: API design assistant
+- **06-performance-profiling**: Performance profiling tools
+- **07-architecture-analysis**: Architecture analysis tools
+- **08-microservices**: Microservices design and management
+- **09-iac-analyzer**: Infrastructure as Code analyzer
+- **10-event-driven**: Event-driven architecture examples
+- **11-tech-debt**: Technical debt analysis
+- **12-doc-writer**: Documentation generation
+- **13-education**: Educational tools and examples
+- **14-github-projects**: GitHub project analysis
 
 ## O que é MCP?
 
@@ -11,25 +31,6 @@ MCP (Model Context Protocol) é um protocolo que padroniza a forma como modelos 
 - Bancos de dados
 - Ferramentas de código
 - E outros recursos externos
-
-## Exemplos Disponíveis
-
-- **[00-hello-world](00-hello-world/)**: Servidor MCP básico com ferramentas simples
-- **[01-file-explorer](01-file-explorer/)**: Exploração do sistema de arquivos local
-- **[02-web-search](02-web-search/)**: Integração com mecanismos de busca na web
-- **[03-database-query](03-database-query/)**: Consultas a bancos de dados
-- **[04-agent-system](04-agent-system/)**: Sistema baseado em agentes autônomos
-- **[05-api-design](05-api-design/)**: Criação e documentação de APIs
-- **[06-performance-profiling](06-performance-profiling/)**: Ferramentas de análise de desempenho
-- **[07-architecture-analysis](07-architecture-analysis/)**: Análise de arquitetura de software
-- **[07-code-review](07-code-review/)**: Revisão automatizada de código
-- **[08-microservices](08-microservices/)**: Implementação de microserviços
-- **[09-iac-analyzer](09-iac-analyzer/)**: Análise de infraestrutura como código
-- **[10-event-driven](10-event-driven/)**: Arquitetura orientada a eventos
-- **[11-tech-debt](11-tech-debt/)**: Análise e gestão de dívida técnica
-- **[12-doc-writer](12-doc-writer/)**: Geração automatizada de documentação
-- **[13-education](13-education/)**: Ferramentas educacionais e de aprendizado
-- **[14-github-projects](14-github-projects/)**: Integração com projetos do GitHub
 
 ## Como Executar os Exemplos
 

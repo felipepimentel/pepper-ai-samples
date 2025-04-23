@@ -1,0 +1,86 @@
+{
+  "schema_version": "v1",
+  "name": "Summarizer Agent",
+  "description": "An agent that summarizes search results and web content",
+  "agent_type": "assistant",
+  "capabilities": [
+    {
+      "name": "summarize",
+      "description": "Summarize search results or content",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "search_results": {
+            "type": "array",
+            "description": "Array of search results to summarize",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Title of the search result"
+                },
+                "url": {
+                  "type": "string",
+                  "description": "URL of the search result"
+                },
+                "snippet": {
+                  "type": "string",
+                  "description": "Text snippet or description from the search result"
+                }
+              }
+            }
+          },
+          "query": {
+            "type": "string",
+            "description": "Original search query"
+          }
+        },
+        "required": ["search_results"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string",
+            "description": "Generated summary of the search results"
+          }
+        },
+        "required": ["summary"]
+      }
+    },
+    {
+      "name": "mcp_web_search",
+      "description": "Perform web search using MCP tool",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          }
+        },
+        "required": ["query"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Search results",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "http",
+    "url": "http://localhost:8080"
+  }
+} 

@@ -1,0 +1,274 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Agent-to-Agent (A2A) Protocol
+
+## Overview
+
+The Agent-to-Agent (A2A) protocol is a standard for enabling AI agents to discover and invoke capabilities from one another. It establishes a common language for agents to communicate, share functionalities, and compose complex behaviors from simpler building blocks.
+
+## Core Concepts
+
+### Agents
+
+Agents are autonomous entities with:
+- Unique identities
+- Sets of capabilities they expose to other agents
+- Standardized interfaces for discovery and invocation
+
+### Capabilities
+
+Capabilities are well-defined functions that agents expose:
+- Each has a unique name within an agent's scope
+- Specified parameters and return types
+- May have authentication and authorization requirements
+- Can be composed to create more complex behaviors
+
+### Agent Manifest
+
+Agents expose a manifest describing their capabilities:
+
+```json
+{
+  "agent": {
+    "name": "search-agent",
+    "version": "1.0.0",
+    "description": "Provides web and news search capabilities"
+  },
+  "capabilities": {
+    "webSearch": {
+      "description": "Search the web for information",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The search query"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of results",
+            "default": 5
+          }
+        },
+        "required": ["query"]
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {"type": "string"},
+                "url": {"type": "string"},
+                "snippet": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "newsSearch": {
+      "description": "Search for news articles",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string"},
+          "days": {"type": "integer", "default": 7}
+        },
+        "required": ["query"]
+      }
+    }
+  }
+}
+```
+
+### Capability Discovery
+
+Agents can discover capabilities of other agents:
+1. Request another agent's manifest
+2. Inspect available capabilities
+3. Check parameters and return types
+4. Invoke appropriate capabilities
+
+### Capability Invocation
+
+Agents invoke capabilities using standardized methods:
+1. Send request with capability name and parameters
+2. Receive response with results or error
+3. Handle errors appropriately
+
+## Implementation
+
+### A2A Server
+
+Creating an A2A server to expose capabilities:
+
+```python
+from pepperpya2a import A2AServer
+
+# Initialize the server
+server = A2AServer(
+    title="Search Agent",
+    description="Provides search capabilities",
+    version="1.0.0"
+)
+
+# Register a capability
+@server.capability("webSearch")
+async def web_search(query: str, limit: int = 5) -> dict:
+    """Search the web for information."""
+    # Implementation
+    results = await perform_web_search(query, limit)
+    return {"results": results}
+
+# Run the server
+if __name__ == "__main__":
+    server.run(host="0.0.0.0", port=9000)
+```
+
+### A2A Client
+
+Consuming capabilities from other agents:
+
+```python
+from pepperpya2a import A2AClient
+
+async def main():
+    # Initialize client
+    client = A2AClient("http://search-agent:9000")
+    
+    # Get the agent's manifest
+    manifest = await client.get_manifest()
+    print(f"Connected to {manifest['agent']['name']}")
+    
+    # Invoke a capability
+    results = await client.invoke_capability(
+        "webSearch",
+        {"query": "latest AI advancements", "limit": 3}
+    )
+    
+    # Process results
+    for item in results["results"]:
+        print(f"- {item['title']}: {item['url']}")
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+```
+
+## Integration with MCP
+
+The A2A protocol can be integrated with the Model Context Protocol (MCP):
+
+### A2A Capabilities Invoking MCP Tools
+
+```python
+from pepperpya2a import A2AServer
+from pepperpymcp import MCPClient
+
+# Initialize A2A server
+server = A2AServer(
+    title="Web Search Bridge",
+    description="Bridges web search to A2A",
+    version="1.0.0"
+)
+
+# Initialize MCP client
+mcp_client = MCPClient("http://mcp-server:8000")
+await mcp_client.initialize()
+
+# A2A capability that uses MCP tool
+@server.capability("webSearch")
+async def web_search(query: str, limit: int = 5) -> dict:
+    """Search the web using MCP tool."""
+    result = await mcp_client.call_tool(
+        "web_search",
+        query=query,
+        limit=limit
+    )
+    return result
+```
+
+### MCP Tools Invoking A2A Capabilities
+
+```python
+from common.transport import SimpleMCP
+from pepperpya2a import A2AClient
+
+# Initialize MCP server
+mcp = SimpleMCP(
+    name="Search Bridge",
+    description="Exposes A2A search as MCP tool"
+)
+
+# Initialize A2A client
+a2a_client = A2AClient("http://search-agent:9000")
+
+# MCP tool that uses A2A capability
+@mcp.tool()
+async def search_web(query: str, limit: int = 5) -> dict:
+    """Search the web using A2A capability."""
+    result = await a2a_client.invoke_capability(
+        "webSearch",
+        {"query": query, "limit": limit}
+    )
+    return result
+```
+
+## Key Benefits
+
+### Discoverability
+
+- Agents can discover capabilities of other agents at runtime
+- Self-documenting capabilities with schemas
+- Dynamic adaptation to available capabilities
+
+### Composability
+
+- Build complex workflows by composing capabilities
+- Chain capabilities across multiple agents
+- Create higher-order capabilities from simpler ones
+
+### Standardization
+
+- Common protocol for agent interactions
+- Consistent error handling and status codes
+- Interoperability between different agent implementations
+
+### Scalability
+
+- Distribute capabilities across multiple agents
+- Add new capabilities without modifying existing ones
+- Compose complex systems from modular components
+
+## Best Practices
+
+### Capability Design
+
+1. **Granularity**: Design capabilities to do one thing well
+2. **Schema Clarity**: Provide clear parameter and return schemas
+3. **Error Handling**: Return standardized error formats
+4. **Documentation**: Include detailed descriptions for all capabilities
+5. **Versioning**: Use semantic versioning for capability changes
+
+### Agent Organization
+
+1. **Single Responsibility**: Agents should have focused domains
+2. **Capability Grouping**: Group related capabilities in the same agent
+3. **Manifest Clarity**: Make agent manifests as self-documenting as possible
+4. **Authentication**: Implement proper authentication for sensitive capabilities
+5. **Rate Limiting**: Protect against abuse with appropriate rate limits
+
+## Implementation Example
+
+A complete implementation example can be found in the `a2a-examples/01-a2a-network` directory, which demonstrates:
+
+- Multiple agents with different capabilities
+- Discovery and invocation between agents
+- Composition of capabilities across agents
+- Error handling and authentication

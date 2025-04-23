@@ -3,11 +3,18 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "a2a-hello-world"
+name = "a2a-web"
 version = "0.1.0"
-description = "Basic A2A protocol example"
+description = "Advanced A2A protocol example with web integration"
 requires-python = ">=3.10"
-dependencies = ["fastapi>=0.104.0", "uvicorn>=0.23.2", "aiohttp>=3.8.5"]
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.23.2",
+    "aiohttp>=3.8.5",
+    "pydantic>=2.4.2",
+    "python-multipart>=0.0.5",
+    "pillow>=10.0.0",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4.2", "black>=23.9.1", "ruff>=0.0.292"]

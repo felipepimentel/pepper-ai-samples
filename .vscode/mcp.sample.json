@@ -1,5 +1,22 @@
 {
   "servers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firecrawl-mcp"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "YOUR-API-KEY"
+      }
+    },
     "Hello World": {
       "type": "stdio",
       "command": "uv",
@@ -28,7 +45,7 @@
       "type": "stdio",
       "command": "npx",
       "args": [
-        "-y", 
+        "-y",
         "@mcp/server-docker"
       ],
       "env": {
@@ -445,7 +462,7 @@
   "groups": {
     "development": [
       "Docker",
-      "Kubernetes", 
+      "Kubernetes",
       "Code Interpreter",
       "GitHub",
       "VSCode",
