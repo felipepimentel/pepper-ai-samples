@@ -1,0 +1,8 @@
+/home/pimentel/Applications/cursor-0.45.14x86_64.AppImage: ignoring input
+2025-04-24 10:55:18,067 - start_host - INFO - Starting MCP host, connecting to server at http://localhost:8000
+2025-04-24 10:55:20,069 - start_host - INFO - MCP host started with PID 325249
+2025-04-24 10:55:20,069 - start_host - INFO - Starting HTTP server for web client
+2025-04-24 10:55:20,079 - start_host - INFO - HTTP server started with PID 325360
+2025-04-24 10:55:20,079 - start_host - INFO - Opening web client in browser
+2025-04-24 10:55:20,913 - start_host - INFO - Web client opened at http://localhost:3000
+2025-04-24 10:55:20,913 - start_host - INFO - All components started. Press Ctrl+C to stop.

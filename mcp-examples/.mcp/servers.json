@@ -1,0 +1,34 @@
+{
+    "servers": {
+        "weather_http": {
+            "type": "http",
+            "url": "http://localhost:8000",
+            "description": "Servidor de clima via HTTP"
+        },
+        "weather_stdio": {
+            "type": "stdio",
+            "command": "python",
+            "args": [
+                "servers/weather_server.py",
+                "--stdio",
+                "--debug"
+            ],
+            "description": "Servidor de clima via stdio"
+        },
+        "search_http": {
+            "type": "http",
+            "url": "http://localhost:8001",
+            "description": "Servidor de busca via HTTP"
+        },
+        "search_stdio": {
+            "type": "stdio",
+            "command": "python",
+            "args": [
+                "servers/search_server.py",
+                "--stdio",
+                "--debug"
+            ],
+            "description": "Servidor de busca via stdio"
+        }
+    }
+}

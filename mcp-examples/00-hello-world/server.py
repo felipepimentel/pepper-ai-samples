@@ -189,5 +189,19 @@ async def get_greeting(name: str):
 
 
 if __name__ == "__main__":
-    # Support both HTTP and stdio modes
-    mcp.run()  # Supports both HTTP and stdio modes
+    import sys
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Hello World MCP Server")
+    parser.add_argument("--stdio", action="store_true", help="Use stdin/stdout for MCP transport")
+    parser.add_argument("--http", action="store_true", help="Use HTTP for MCP transport (default)")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    args = parser.parse_args()
+    
+    # Detectar modo automaticamente se não estiver especificado
+    if args.stdio:
+        print("Starting Hello World MCP Server in STDIO mode", file=sys.stderr)
+        mcp.run(transport_mode="stdio", debug=args.debug)
+    else:
+        print("Starting Hello World MCP Server in HTTP mode", file=sys.stderr)
+        mcp.run(transport_mode="http", debug=args.debug)
