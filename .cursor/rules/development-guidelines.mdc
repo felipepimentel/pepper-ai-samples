@@ -1,0 +1,92 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Development Guidelines
+
+## Example Development
+
+1. **Keep It Simple**
+   - One concept per example
+   - Minimal dependencies
+   - Clear, documented code
+   - Focus on teaching
+
+2. **Standard Structure**
+   - All code in `src/server.py`
+   - Complete README.md
+   - Proper pyproject.toml
+
+3. **Use Shared Libraries**
+   - Import from `pepperpymcp` for MCP
+   - Import from `pepperpya2a` for A2A
+   - No duplicate utilities
+
+## Code Standards
+
+1. **Python**
+   - Python 3.10+
+   - Type hints required
+   - Docstrings for public interfaces
+   - Black formatting
+
+2. **Documentation**
+   - Clear concept explanation
+   - Step-by-step tutorial
+   - Code comments
+   - Usage examples
+
+3. **Dependencies**
+   - List in pyproject.toml
+   - Minimal external deps
+   - Pin versions
+   - Document requirements
+
+## Example README Structure
+
+```markdown
+# Example Name
+
+## Concept
+What this example teaches
+
+## Prerequisites
+- Required knowledge
+- Required setup
+
+## Tutorial
+1. Step one
+2. Step two
+3. Step three
+
+## Exercises
+1. Practice exercise
+2. Challenge exercise
+```
+
+## Best Practices
+
+1. **Code Organization**
+   - One concept per file
+   - Clear function names
+   - Proper error handling
+   - Type safety
+
+2. **Documentation**
+   - Explain the concept
+   - Show usage examples
+   - Document edge cases
+   - Include exercises
+
+3. **Testing**
+   - Test main functionality
+   - Test error cases
+   - Document test cases
+   - Include examples
+
+## Reference Examples
+
+- Basic MCP: [examples/mcp/00-hello-world/src/server.py](mdc:examples/mcp/00-hello-world/src/server.py)
+- Basic A2A: [examples/a2a/00-hello-world/src/server.py](mdc:examples/a2a/00-hello-world/src/server.py)
+- Integration: [examples/integrated/00-basic-bridge/src/server.py](mdc:examples/integrated/00-basic-bridge/src/server.py)

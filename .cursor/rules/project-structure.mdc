@@ -3,7 +3,82 @@ description:
 globs:
 alwaysApply: true
 ---
-# Project Structure Guide
+# Project Structure
+
+This document outlines the organization of the pepper-ai-samples project, which focuses on providing progressive examples for teaching MCP and A2A concepts.
+
+## Directory Structure
+
+```
+pepper-ai-samples/
+├── examples/           # All examples organized by protocol
+│   ├── mcp/           # Progressive MCP examples
+│   │   ├── 00-hello-world/      # Basic concepts
+│   │   ├── 01-file-explorer/    # File handling
+│   │   ├── 02-web-search/       # Web integration
+│   │   ├── 03-database-query/   # Database operations
+│   │   ├── 04-search-server/    # Search server
+│   │   ├── 05-weather-server/   # Weather server
+│   │   └── 06-integration-server/ # Integration server
+│   │
+│   ├── a2a/           # Progressive A2A examples
+│   │   ├── 00-hello-world/      # Basic concepts
+│   │   ├── 01-network/          # Agent communication
+│   │   ├── 02-web/             # Web integration
+│   │   └── 03-api-integration/ # API integration
+│   │
+│   └── integrated/    # A2A-MCP integration examples
+│       ├── 00-basic-bridge/     # Basic protocol bridge
+│       ├── 01-web-search/       # Integrated web search
+│       └── 02-weather-insights/ # Complete use case
+│
+└── libs/              # Shared libraries
+    ├── pepperpya2a/  # A2A library
+    └── pepperpymcp/  # MCP library
+```
+
+## Example Structure
+
+Each example must follow this standard structure:
+
+```
+XX-example-name/
+├── src/
+│   └── server.py    # Main implementation
+├── README.md        # Concept explanation and tutorial
+└── pyproject.toml   # Dependencies
+```
+
+## Shared Libraries
+
+The `libs/` directory contains our core shared libraries:
+
+1. **pepperpymcp**: MCP protocol implementation and utilities
+   - Core MCP server functionality
+   - Transport implementations
+   - Common types and utilities
+
+2. **pepperpya2a**: A2A protocol implementation and utilities
+   - Core A2A agent functionality
+   - Network communication
+   - Agent discovery
+
+## Learning Path
+
+Examples are organized in a progressive learning path:
+
+1. **MCP Path** (`examples/mcp/`):
+   - 00: Basic concepts and setup
+   - 01-03: Core functionality
+   - 04-06: Advanced implementations
+
+2. **A2A Path** (`examples/a2a/`):
+   - 00: Basic agent concepts
+   - 01-03: Agent capabilities
+
+3. **Integration Path** (`examples/integrated/`):
+   - 00: Basic protocol bridging
+   - 01-02: Real-world applications
 
 ## Core Framework
 ```
@@ -155,15 +230,3 @@ templates/
 
 ## Template Organization
 - Templates must be in `templates/*.template`
-- JSON templates for structured data
-- Text templates for content generation
-- See [00-hello-world/templates/](mdc:00-hello-world/templates/welcome_email.template) for examples
-
-## Best Practices
-1. Keep server.py focused on MCP functionality
-2. Use templates for all long strings
-3. Organize resources by domain
-4. Follow consistent naming:
-   - Tools: verb_noun()
-   - Resources: noun://{param}
-   - Templates: purpose_type.template

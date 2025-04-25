@@ -1,0 +1,84 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Shared Libraries
+
+## Overview
+
+The `libs/` directory contains our core shared libraries that provide the foundation for all examples:
+
+```
+libs/
+├── pepperpymcp/  # MCP implementation
+└── pepperpya2a/  # A2A implementation
+```
+
+## PepperPyMCP Library
+
+Main MCP protocol implementation in [libs/pepperpymcp/src/pepperpymcp](mdc:libs/pepperpymcp/src/pepperpymcp):
+
+1. **Core Features**
+   - MCP server implementation
+   - Transport layer (HTTP, stdio)
+   - Resource management
+   - Tool registration
+
+2. **Usage**
+   ```python
+   from pepperpymcp import SimpleMCP
+   
+   mcp = SimpleMCP("My Server")
+   
+   @mcp.tool()
+   def my_tool():
+       pass
+   ```
+
+## PepperPyA2A Library
+
+Main A2A protocol implementation in [libs/pepperpya2a/src/pepperpya2a](mdc:libs/pepperpya2a/src/pepperpya2a):
+
+1. **Core Features**
+   - A2A agent implementation
+   - Network discovery
+   - Capability management
+   - Agent communication
+
+2. **Usage**
+   ```python
+   from pepperpya2a import A2AServer
+   
+   server = A2AServer("My Agent")
+   
+   @server.capability()
+   def my_capability():
+       pass
+   ```
+
+## Library Guidelines
+
+1. **Code Organization**
+   - Keep implementation in src/
+   - Clear module structure
+   - Proper type hints
+   - Complete documentation
+
+2. **Dependencies**
+   - Minimal external deps
+   - Clear requirements
+   - Version compatibility
+   - Security updates
+
+3. **Testing**
+   - Unit tests required
+   - Integration tests
+   - Example coverage
+   - Performance tests
+
+4. **Documentation**
+   - API documentation
+   - Usage examples
+   - Best practices
+   - Migration guides
