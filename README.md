@@ -1,37 +1,86 @@
 # Pepper AI Samples
 
-Este repositório contém exemplos de implementação de agentes de IA usando os protocolos MCP (Model Context Protocol) e A2A (Agent-to-Agent).
+This repository contains progressive examples for learning and implementing the Model Context Protocol (MCP) and Agent-to-Agent (A2A) Protocol.
 
-## Estrutura do Repositório
+## Project Structure
 
-O repositório está organizado da seguinte forma:
+The examples are organized into three main categories:
 
-### Exemplos MCP (Model Context Protocol)
+### MCP Examples (`examples/mcp/`)
+Progressive examples for learning MCP concepts:
+- `00-hello-world`: Basic MCP concepts and server setup
+- `01-file-explorer`: Resource handling and management
+- `02-web-search`: External service integration
+- `03-database-query`: Data persistence and querying
 
-Os exemplos na pasta `mcp-examples/` demonstram o uso do protocolo MCP para conectar agentes a ferramentas, APIs e recursos:
+### A2A Examples (`examples/a2a/`)
+Progressive examples for learning A2A concepts:
+- `00-hello-world`: Basic A2A concepts
+- `01-network`: Agent communication
+- `02-web`: Web integration
+- `03-api-integration`: API integration
 
-- **[00-hello-world](mcp-examples/00-hello-world/)**: Exemplo básico do servidor MCP
-- **[01-file-explorer](mcp-examples/01-file-explorer/)**: Exploração do sistema de arquivos
-- **[02-web-search](mcp-examples/02-web-search/)**: Integração com busca na web
-- **[03-database-query](mcp-examples/03-database-query/)**: Consultas em banco de dados
-- **[04-agent-system](mcp-examples/04-agent-system/)**: Sistema baseado em agentes
-- **[05-api-design](mcp-examples/05-api-design/)**: Design de API
-- **[06-performance-profiling](mcp-examples/06-performance-profiling/)**: Análise de desempenho
-- **[07-architecture-analysis](mcp-examples/07-architecture-analysis/)**: Análise de arquitetura
-- **[07-code-review](mcp-examples/07-code-review/)**: Revisão de código
-- **[08-microservices](mcp-examples/08-microservices/)**: Microserviços
-- **[09-iac-analyzer](mcp-examples/09-iac-analyzer/)**: Análise de infraestrutura como código
-- **[10-event-driven](mcp-examples/10-event-driven/)**: Arquitetura orientada a eventos
-- **[11-tech-debt](mcp-examples/11-tech-debt/)**: Análise de dívida técnica
-- **[12-doc-writer](mcp-examples/12-doc-writer/)**: Geração de documentação
-- **[13-education](mcp-examples/13-education/)**: Ferramentas educacionais
-- **[14-github-projects](mcp-examples/14-github-projects/)**: Integração com projetos GitHub
+### Integration Examples (`examples/integrated/`)
+Examples showing how to combine both protocols:
+- `00-basic-bridge`: Basic protocol bridging
+- `01-web-search`: Integrated web search
+- `02-weather-insights`: Complete use case
 
-### Exemplos A2A (Agent-to-Agent)
+## Getting Started
 
-Os exemplos na pasta `a2a-examples/` demonstram o uso do protocolo A2A para comunicação entre agentes:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/pepper-ai/pepper-ai-samples.git
+   cd pepper-ai-samples
+   ```
 
-- **[15-a2a-web](a2a-examples/15-a2a-web/)**: Agente de busca na web com suporte A2A e integração com MCP
+2. Set up the environment:
+   ```bash
+   ./setup-env.sh
+   source .venv/bin/activate
+   ```
+
+3. Start with basic examples:
+   ```bash
+   cd examples/mcp/00-hello-world
+   python src/server.py
+   ```
+
+## Learning Path
+
+1. **Start with MCP**:
+   - Begin with `mcp/00-hello-world`
+   - Progress through MCP examples
+   - Learn core MCP concepts
+
+2. **Move to A2A**:
+   - Start with `a2a/00-hello-world`
+   - Learn agent communication
+   - Understand A2A patterns
+
+3. **Explore Integration**:
+   - See how protocols work together
+   - Build real-world applications
+   - Implement complete solutions
+
+## Documentation
+
+Each example includes:
+- Concept explanation
+- Step-by-step tutorial
+- Code documentation
+- Suggested exercises
+
+## Contributing
+
+1. Follow the project structure
+2. Maintain progressive learning focus
+3. Keep examples simple and focused
+4. Include complete documentation
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Configuração do Ambiente
 
@@ -60,15 +109,6 @@ As bibliotecas comuns utilizadas pelos exemplos estão na pasta `libs/`:
 - [Documentação do MCP](https://modelcontextprotocol.github.io/)
 - [Documentação do A2A](https://google.github.io/A2A/)
 
-## Project Structure
-
-- **00-hello-world**: A simple "Hello World" MCP server example
-- **01-file-explorer**: MCP server example for file operations
-- **02-web-search**: MCP server example for web search operations
-- **03-database-query**: MCP server example for database operations
-- **04-agent-system**: MCP server example for agent-based systems
-- **05-fraud-detection**: MCP server example for fraud detection
-
 ## Common Utilities
 
 The `libs/pepperpymcp` directory contains shared utilities used across all examples:
@@ -78,26 +118,6 @@ The `libs/pepperpymcp` directory contains shared utilities used across all examp
   - `MCPClient`: Generic client for interacting with MCP servers via HTTP
   - `MCPStdioClient`: Generic client for interacting with MCP servers via stdio
 - **types**: Common data types and structures
-
-## Getting Started
-
-Start with the hello-world example to understand the basic concepts:
-
-```bash
-cd 00-hello-world
-python -m pip install -e .
-
-# Run the server
-python server.py
-
-# In another terminal, run the client
-python client.py
-
-# Or try the stdio mode (server and client in one process)
-python stdio_client.py
-```
-
-Each example has its own README with more detailed instructions.
 
 ## Development Guidelines
 
@@ -205,66 +225,6 @@ Each example includes multiple ways to test:
    # Test HTTP mode
    curl http://localhost:8000/health
    ```
-
-## Learning Path
-
-Each example builds upon the previous one, introducing new concepts:
-
-### 1. Hello World MCP Server (00-hello-world)
-- Basic MCP concepts and server setup
-- HTTP and stdio protocols
-- Simple tools and resources
-- [Start Here →](00-hello-world/README.md)
-
-### 2. File Explorer (01-file-explorer)
-- File system operations
-- More complex tools
-- State management
-- [Learn More →](01-file-explorer/README.md)
-
-### 3. Web Search (02-web-search)
-- External API integration
-- Async operations
-- Error handling
-- [Learn More →](02-web-search/README.md)
-
-### 4. Database Query (03-database-query)
-- Database interactions
-- Query building
-- Data validation
-- [Learn More →](03-database-query/README.md)
-
-### 5. Agent System (04-agent-system)
-- Multi-agent communication
-- Complex workflows
-- Event handling
-- [Learn More →](04-agent-system/README.md)
-
-### 6. Fraud Detection (05-fraud-detection)
-- ML integration
-- Real-time processing
-- Advanced patterns
-- [Learn More →](05-fraud-detection/README.md)
-
-## Development Tips
-
-### Running Examples
-```bash
-cd <example-dir>     # Go to any example
-python src/server.py # Run in HTTP mode
-python src/server.py --stdio  # Run in MCP mode
-```
-
-### VS Code Integration
-1. Install: Python + MCP extensions
-2. Open any example
-3. Press F5 to run/debug
-
-### Testing
-Each example includes:
-- Interactive HTML client
-- API tests
-- Example code
 
 ## Project Layout
 ```
