@@ -1,42 +1,62 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 File Explorer MCP Server Example
-Demonstra como criar um servidor MCP para exploração de sistema de arquivos.
+Demonstrates how to create an MCP server for file system exploration.
 """
 
 import datetime
 import os
 import stat
+import sys
+import argparse
+import logging
+import asyncio
 from typing import Any, Dict, List, Optional
 
-from pepperpymcp import PepperFastMCP
+from fastapi import FastAPI
+from mcp.server.fastmcp import FastMCP as OfficialFastMCP
+from pepperpymcp import PepperFastMCP, ConnectionMode
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create FastAPI app
+app = FastAPI()
+
+# Initialize MCP server
 mcp = PepperFastMCP(
-    "File Explorer", description="Servidor MCP para exploração de sistema de arquivos"
+    name="File Explorer",
+    description="MCP server for file system exploration",
+    version="1.0.0"
 )
+
+# Manually set app to avoid AttributeError
+if not hasattr(mcp._mcp, "app"):
+    mcp._mcp.app = app
 
 
 @mcp.tool()
 def list_directory(path: str = ".") -> List[Dict[str, Any]]:
-    """Lista arquivos e diretórios em um caminho especificado.
+    """Lists files and directories in a specified path.
 
-    Use esta ferramenta quando precisar explorar o conteúdo de um diretório,
-    listar arquivos ou navegar pelo sistema de arquivos.
+    Use this tool when you need to explore directory contents,
+    list files or navigate the file system.
 
-    Exemplos de uso:
-    - list_directory()  →  Lista arquivos no diretório atual
-    - list_directory("/home/user")  →  Lista arquivos no diretório /home/user
-    - list_directory("../")  →  Lista arquivos no diretório pai
+    Examples:
+    - list_directory()  →  Lists files in current directory
+    - list_directory("/home/user")  →  Lists files in /home/user directory
+    - list_directory("../")  →  Lists files in parent directory
 
     Args:
-        path: Caminho do diretório para listar (padrão: diretório atual)
+        path: Directory path to list (default: current directory)
 
     Returns:
-        Lista de dicionários contendo informações sobre cada arquivo/diretório
+        List of dictionaries containing information about each file/directory
 
     Raises:
-        FileNotFoundError: Se o diretório não existir
-        PermissionError: Se não tiver permissão para acessar o diretório
+        FileNotFoundError: If directory doesn't exist
+        PermissionError: If no permission to access directory
     """
     try:
         result = []
@@ -44,7 +64,7 @@ def list_directory(path: str = ".") -> List[Dict[str, Any]]:
             item_path = os.path.join(path, item)
             stats = os.stat(item_path)
 
-            # Determinar o tipo
+            # Determine type
             item_type = "unknown"
             if os.path.isdir(item_path):
                 item_type = "directory"
@@ -53,7 +73,7 @@ def list_directory(path: str = ".") -> List[Dict[str, Any]]:
             elif os.path.islink(item_path):
                 item_type = "symlink"
 
-            # Formatação de data e permissões
+            # Format date and permissions
             modified_time = datetime.datetime.fromtimestamp(stats.st_mtime).isoformat()
             permissions = stat.filemode(stats.st_mode)
 
@@ -72,45 +92,45 @@ def list_directory(path: str = ".") -> List[Dict[str, Any]]:
     except (FileNotFoundError, PermissionError) as e:
         raise e
     except Exception as e:
-        raise RuntimeError(f"Erro ao listar diretório: {str(e)}")
+        raise RuntimeError(f"Error listing directory: {str(e)}")
 
 
 @mcp.tool()
 def read_file(path: str, max_size: int = 100000) -> Dict[str, Any]:
-    """Lê o conteúdo de um arquivo.
+    """Reads file content.
 
-    Use esta ferramenta quando precisar ler o conteúdo de um arquivo de texto.
-    Limitado a arquivos de texto com tamanho máximo configurável.
+    Use this tool when you need to read the content of a text file.
+    Limited to text files with configurable maximum size.
 
-    Exemplos de uso:
-    - read_file("arquivo.txt")  →  Lê o conteúdo do arquivo.txt
-    - read_file("/caminho/para/config.json", 5000)  →  Lê config.json limitado a 5000 bytes
+    Examples:
+    - read_file("file.txt")  →  Reads content of file.txt
+    - read_file("/path/to/config.json", 5000)  →  Reads config.json limited to 5000 bytes
 
     Args:
-        path: Caminho do arquivo a ser lido
-        max_size: Tamanho máximo a ser lido em bytes (padrão: 100000)
+        path: Path to file to read
+        max_size: Maximum size to read in bytes (default: 100000)
 
     Returns:
-        Dicionário contendo informações do arquivo e seu conteúdo
+        Dictionary containing file information and content
 
     Raises:
-        FileNotFoundError: Se o arquivo não existir
-        PermissionError: Se não tiver permissão para ler o arquivo
-        ValueError: Se o arquivo exceder o tamanho máximo
+        FileNotFoundError: If file doesn't exist
+        PermissionError: If no permission to read file
+        ValueError: If file exceeds maximum size
     """
     try:
-        # Verificar se o arquivo existe
+        # Check if file exists
         if not os.path.isfile(path):
-            raise FileNotFoundError(f"O arquivo '{path}' não existe")
+            raise FileNotFoundError(f"File '{path}' doesn't exist")
 
-        # Verificar o tamanho do arquivo
+        # Check file size
         file_size = os.path.getsize(path)
         if file_size > max_size:
             raise ValueError(
-                f"Arquivo muito grande: {file_size} bytes (máximo: {max_size} bytes)"
+                f"File too large: {file_size} bytes (maximum: {max_size} bytes)"
             )
 
-        # Tentar determinar o tipo de arquivo
+        # Try to determine file type
         file_type = "text"
         file_extension = os.path.splitext(path)[1].lower()
         binary_extensions = [
@@ -129,16 +149,16 @@ def read_file(path: str, max_size: int = 100000) -> Dict[str, Any]:
 
         if file_extension in binary_extensions:
             file_type = "binary"
-            content = "[Arquivo binário - conteúdo não exibido]"
+            content = "[Binary file - content not displayed]"
         else:
             try:
                 with open(path, "r", encoding="utf-8") as file:
                     content = file.read()
             except UnicodeDecodeError:
                 file_type = "binary"
-                content = "[Codificação desconhecida - conteúdo não exibido]"
+                content = "[Unknown encoding - content not displayed]"
 
-        # Obter estatísticas do arquivo
+        # Get file stats
         stats = os.stat(path)
         modified_time = datetime.datetime.fromtimestamp(stats.st_mtime).isoformat()
 
@@ -153,33 +173,33 @@ def read_file(path: str, max_size: int = 100000) -> Dict[str, Any]:
     except (FileNotFoundError, PermissionError, ValueError) as e:
         raise e
     except Exception as e:
-        raise RuntimeError(f"Erro ao ler arquivo: {str(e)}")
+        raise RuntimeError(f"Error reading file: {str(e)}")
 
 
 @mcp.tool()
 def write_file(path: str, content: str, mode: str = "w") -> Dict[str, Any]:
-    """Escreve conteúdo em um arquivo.
+    """Writes content to a file.
 
-    Use esta ferramenta quando precisar criar ou modificar um arquivo de texto.
+    Use this tool when you need to create or modify a text file.
 
-    Exemplos de uso:
-    - write_file("novo.txt", "Conteúdo do arquivo")  →  Cria/sobrescreve novo.txt
-    - write_file("log.txt", "Nova linha", "a")  →  Adiciona conteúdo ao final de log.txt
+    Examples:
+    - write_file("new.txt", "File content")  →  Creates/overwrites new.txt
+    - write_file("log.txt", "New line", "a")  →  Appends content to log.txt
 
     Args:
-        path: Caminho do arquivo a ser escrito
-        content: Conteúdo a ser escrito no arquivo
-        mode: Modo de escrita ('w' para sobrescrever, 'a' para adicionar)
+        path: Path to file to write
+        content: Content to write to file
+        mode: Write mode ('w' for overwrite, 'a' for append)
 
     Returns:
-        Dicionário com informações sobre a operação
+        Dictionary with operation information
 
     Raises:
-        PermissionError: Se não tiver permissão para escrever no arquivo
-        ValueError: Se o modo for inválido
+        PermissionError: If no permission to write file
+        ValueError: If mode is invalid
     """
     if mode not in ["w", "a"]:
-        raise ValueError("Modo deve ser 'w' (sobrescrever) ou 'a' (adicionar)")
+        raise ValueError("Mode must be 'w' (overwrite) or 'a' (append)")
 
     try:
         with open(path, mode, encoding="utf-8") as file:
@@ -192,44 +212,44 @@ def write_file(path: str, content: str, mode: str = "w") -> Dict[str, Any]:
             "path": os.path.abspath(path),
             "size": file_size,
             "mode": mode,
-            "message": f"Arquivo {'sobrescrito' if mode == 'w' else 'atualizado'} com sucesso",
+            "message": f"File {'overwritten' if mode == 'w' else 'updated'} successfully",
         }
     except PermissionError as e:
         raise e
     except Exception as e:
-        raise RuntimeError(f"Erro ao escrever arquivo: {str(e)}")
+        raise RuntimeError(f"Error writing file: {str(e)}")
 
 
 @mcp.tool()
 def get_file_info(path: str) -> Dict[str, Any]:
-    """Obtém informações detalhadas sobre um arquivo ou diretório.
+    """Gets detailed information about a file or directory.
 
-    Use esta ferramenta quando precisar obter metadados detalhados sobre
-    um arquivo ou diretório sem ler seu conteúdo.
+    Use this tool when you need to get detailed metadata about
+    a file or directory without reading its content.
 
-    Exemplos de uso:
-    - get_file_info("arquivo.txt")  →  Retorna metadados de arquivo.txt
-    - get_file_info("/home/user")  →  Retorna metadados do diretório /home/user
+    Examples:
+    - get_file_info("file.txt")  →  Returns metadata for file.txt
+    - get_file_info("/home/user")  →  Returns metadata for /home/user directory
 
     Args:
-        path: Caminho do arquivo ou diretório
+        path: Path to file or directory
 
     Returns:
-        Dicionário contendo informações detalhadas sobre o arquivo/diretório
+        Dictionary containing detailed information about the file/directory
 
     Raises:
-        FileNotFoundError: Se o arquivo/diretório não existir
-        PermissionError: Se não tiver permissão para acessar o arquivo/diretório
+        FileNotFoundError: If file/directory doesn't exist
+        PermissionError: If no permission to access file/directory
     """
     try:
-        # Verificar se o caminho existe
+        # Check if path exists
         if not os.path.exists(path):
-            raise FileNotFoundError(f"O caminho '{path}' não existe")
+            raise FileNotFoundError(f"Path '{path}' doesn't exist")
 
-        # Obter estatísticas
+        # Get stats
         stats = os.stat(path)
 
-        # Determinar o tipo
+        # Determine type
         item_type = "unknown"
         if os.path.isdir(path):
             item_type = "directory"
@@ -238,12 +258,12 @@ def get_file_info(path: str) -> Dict[str, Any]:
         elif os.path.islink(path):
             item_type = "symlink"
 
-        # Formatação de datas
+        # Format dates
         modified_time = datetime.datetime.fromtimestamp(stats.st_mtime).isoformat()
         access_time = datetime.datetime.fromtimestamp(stats.st_atime).isoformat()
         create_time = datetime.datetime.fromtimestamp(stats.st_ctime).isoformat()
 
-        # Permissões
+        # Permissions
         permissions = stat.filemode(stats.st_mode)
 
         result = {
@@ -251,177 +271,182 @@ def get_file_info(path: str) -> Dict[str, Any]:
             "path": os.path.abspath(path),
             "type": item_type,
             "size": stats.st_size,
+            "permissions": permissions,
+            "owner": stats.st_uid,
+            "group": stats.st_gid,
             "modified": modified_time,
             "accessed": access_time,
             "created": create_time,
-            "permissions": permissions,
-            "user_id": stats.st_uid,
-            "group_id": stats.st_gid,
         }
 
-        # Se for um diretório, adicionar contagem de itens
+        # Add directory-specific info
         if item_type == "directory":
-            try:
-                result["item_count"] = len(os.listdir(path))
-            except PermissionError:
-                result["item_count"] = None
+            result["contents"] = len(os.listdir(path))
 
         return result
     except (FileNotFoundError, PermissionError) as e:
         raise e
     except Exception as e:
-        raise RuntimeError(f"Erro ao obter informações: {str(e)}")
+        raise RuntimeError(f"Error getting file info: {str(e)}")
 
 
 @mcp.tool()
 def delete_item(path: str, recursive: bool = False) -> Dict[str, Any]:
-    """Exclui um arquivo ou diretório.
+    """Deletes a file or directory.
 
-    Use esta ferramenta quando precisar remover um arquivo ou diretório
-    do sistema de arquivos.
+    Use this tool when you need to delete a file or directory.
+    For directories, recursive deletion must be explicitly enabled.
 
-    Exemplos de uso:
-    - delete_item("arquivo.txt")  →  Remove o arquivo.txt
-    - delete_item("/caminho/diretorio", True)  →  Remove o diretório e seu conteúdo
+    Examples:
+    - delete_item("file.txt")  →  Deletes file.txt
+    - delete_item("empty_dir")  →  Deletes empty directory
+    - delete_item("full_dir", recursive=True)  →  Deletes directory and contents
 
     Args:
-        path: Caminho do arquivo ou diretório a ser excluído
-        recursive: Se True, remove diretórios não vazios (padrão: False)
+        path: Path to file or directory to delete
+        recursive: Whether to recursively delete directories (default: False)
 
     Returns:
-        Dicionário com informações sobre a operação
+        Dictionary with operation information
 
     Raises:
-        FileNotFoundError: Se o arquivo/diretório não existir
-        PermissionError: Se não tiver permissão para excluir
-        IsADirectoryError: Se tentar excluir um diretório não vazio sem recursive=True
+        FileNotFoundError: If path doesn't exist
+        PermissionError: If no permission to delete
+        OSError: If trying to delete non-empty directory without recursive=True
     """
     try:
-        # Verificar se o caminho existe
+        # Check if path exists
         if not os.path.exists(path):
-            raise FileNotFoundError(f"O caminho '{path}' não existe")
+            raise FileNotFoundError(f"Path '{path}' doesn't exist")
 
-        # Se for um diretório
-        if os.path.isdir(path):
+        # Get info before deletion
+        is_dir = os.path.isdir(path)
+        name = os.path.basename(path)
+        abs_path = os.path.abspath(path)
+
+        # Delete based on type
+        if is_dir:
             if recursive:
                 import shutil
                 shutil.rmtree(path)
             else:
-                os.rmdir(path)  # Isso falha se o diretório não estiver vazio
+                os.rmdir(path)  # Will fail if directory not empty
         else:
-            # É um arquivo ou link simbólico
             os.remove(path)
 
         return {
             "success": True,
-            "path": path,
-            "message": f"{'Diretório' if os.path.isdir(path) else 'Arquivo'} excluído com sucesso",
+            "name": name,
+            "path": abs_path,
+            "type": "directory" if is_dir else "file",
+            "recursive": recursive if is_dir else None,
+            "message": f"Successfully deleted {'directory' if is_dir else 'file'}"
         }
-    except (FileNotFoundError, PermissionError) as e:
+    except (FileNotFoundError, PermissionError, OSError) as e:
         raise e
-    except OSError as e:
-        if os.path.isdir(path):
-            raise IsADirectoryError(
-                f"Diretório '{path}' não está vazio. Use recursive=True para excluir."
-            )
-        raise RuntimeError(f"Erro ao excluir: {str(e)}")
+    except Exception as e:
+        raise RuntimeError(f"Error deleting item: {str(e)}")
 
 
 @mcp.resource("file://{path}")
 def file_resource(path: str) -> str:
-    """Acessar o conteúdo de um arquivo como um recurso MCP.
+    """Gets file content as a resource.
 
-    Este recurso permite acessar arquivos do sistema diretamente como recursos MCP.
-    O URI deve estar no formato file://{path}, onde {path} é o caminho do arquivo.
+    This resource provides direct access to file content through a URI.
+    Only text files are supported. For binary files, use the read_file tool.
 
-    Exemplos de uso:
-    - file:///etc/hosts  →  Acessa o arquivo /etc/hosts
-    - file://./config.json  →  Acessa o arquivo config.json no diretório atual
+    Examples:
+    - file://path/to/file.txt  →  Returns content of file.txt
+    - file://config.json  →  Returns content of config.json
 
     Args:
-        path: Caminho do arquivo a ser acessado
+        path: Path to the file
 
     Returns:
-        O conteúdo do arquivo como string
+        File content as string
 
     Raises:
-        FileNotFoundError: Se o arquivo não existir
-        PermissionError: Se não tiver permissão para ler o arquivo
+        FileNotFoundError: If file doesn't exist
+        PermissionError: If no permission to read file
+        UnicodeDecodeError: If file is not text
     """
     try:
-        path = path.replace("file://", "")
-        
-        if not os.path.isfile(path):
-            raise FileNotFoundError(f"O arquivo '{path}' não existe")
-        
-        with open(path, "r", encoding="utf-8") as file:
-            return file.read()
+        with open(path, 'r', encoding='utf-8') as f:
+            return f.read()
     except UnicodeDecodeError:
-        return "[Arquivo binário - conteúdo não exibido]"
+        return "[Binary file - use read_file tool to access content]"
 
 
 @mcp.prompt()
 async def file_summary(path: str) -> str:
-    """Gera um resumo das informações de um arquivo ou diretório.
+    """Generates a summary of a file or directory.
 
-    Use este prompt quando precisar de uma descrição em linguagem natural
-    das informações de um arquivo ou diretório.
+    Use this prompt when you need a natural language description
+    of a file or directory's properties and content.
 
-    Exemplos de uso:
-    - file_summary("arquivo.txt")  →  Resumo do arquivo.txt
-    - file_summary("/caminho/para/diretório")  →  Resumo do diretório
+    Examples:
+    - file_summary("document.txt")  →  Summary of document.txt
+    - file_summary("/home/user/docs")  →  Summary of docs directory
 
     Args:
-        path: Caminho do arquivo ou diretório
+        path: Path to file or directory
 
     Returns:
-        Resumo em texto das informações do arquivo ou diretório
+        Natural language summary of the item
     """
     try:
         info = get_file_info(path)
         
-        # Determinar o tipo
-        item_type = info["type"]
-        
-        if item_type == "directory":
-            items = list_directory(path)
-            num_files = sum(1 for item in items if item["type"] == "file")
-            num_dirs = sum(1 for item in items if item["type"] == "directory")
+        if info["type"] == "directory":
+            contents = list_directory(path)
+            files = sum(1 for item in contents if item["type"] == "file")
+            dirs = sum(1 for item in contents if item["type"] == "directory")
             
             return mcp.get_template("directory_summary").format(
+                name=info["name"],
                 path=info["path"],
-                item_count=info["item_count"],
-                num_files=num_files,
-                num_dirs=num_dirs,
-                modified=info["modified"]
+                files=files,
+                directories=dirs,
+                modified=info["modified"],
+                permissions=info["permissions"]
             )
-        elif item_type == "file":
-            file_info = read_file(path)
-            
-            # Se o arquivo for muito grande, não incluir o conteúdo
-            content_preview = None
-            if file_info["type"] == "text" and file_info["size"] < 1024:
-                content_preview = file_info["content"]
+        else:
+            file_data = read_file(path)
+            preview = file_data["content"][:200] + "..." if len(file_data["content"]) > 200 else file_data["content"]
             
             return mcp.get_template("file_summary").format(
                 name=info["name"],
                 path=info["path"],
                 size=info["size"],
+                type=info["type"],
                 modified=info["modified"],
-                type=file_info["type"],
-                preview=content_preview if content_preview else "[Conteúdo muito grande para exibição]"
+                permissions=info["permissions"],
+                preview=preview
             )
-        else:
-            return f"Item de tipo desconhecido: {item_type}"
     except Exception as e:
-        return f"Erro ao gerar resumo: {str(e)}"
+        return f"Error generating summary: {str(e)}"
 
 
-# Adicionar cliente web
-mcp.add_web_client()
+async def main():
+    """Main entry point for the server."""
+    if args.stdio:
+        await mcp._run_stdio()
+    else:
+        mcp.run()
 
 
 if __name__ == "__main__":
-    # Executar servidor (sem necessidade de código de limpeza específico)
-    # Support both HTTP and stdio modes
-    mcp.run()  # Supports both HTTP and stdio modes
+    parser = argparse.ArgumentParser(description="File Explorer MCP Server")
+    parser.add_argument("--stdio", action="store_true", help="Use STDIO transport")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    args = parser.parse_args()
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+
+    if args.stdio:
+        print("Starting File Explorer MCP Server in STDIO mode", file=sys.stderr)
+        asyncio.run(main())
+    else:
+        print("Starting File Explorer MCP Server in HTTP mode", file=sys.stderr)
+        mcp.run()

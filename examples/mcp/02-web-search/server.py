@@ -1,49 +1,70 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Web Search MCP Server Example
-Demonstra como criar um servidor MCP para pesquisas e interações com a web.
+Demonstrates how to create an MCP server for web searches and interactions.
 """
 
 import re
+import sys
+import argparse
+import logging
+import asyncio
 from html import unescape
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote, urlparse
 
 import httpx
-from pepperpymcp import PepperFastMCP
+from fastapi import FastAPI
+from mcp.server.fastmcp import FastMCP as OfficialFastMCP
+from pepperpymcp import PepperFastMCP, ConnectionMode
 
-mcp = PepperFastMCP("Web Search", description="Servidor MCP para pesquisas na web")
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Configurações
+# Create FastAPI app
+app = FastAPI()
+
+# Initialize MCP server
+mcp = PepperFastMCP(
+    name="Web Search",
+    description="MCP server for web searches",
+    version="1.0.0"
+)
+
+# Configuration
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-TIMEOUT = 30.0  # segundos
+TIMEOUT = 30.0  # seconds
 
+# Manually set app to avoid AttributeError
+if not hasattr(mcp._mcp, "app"):
+    mcp._mcp.app = app
 
 @mcp.tool()
 async def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
-    """Realiza uma pesquisa na web e retorna os resultados.
+    """Performs a web search and returns the results.
 
-    Use esta ferramenta quando precisar encontrar informações na web sobre
-    qualquer tópico, notícia ou fato. Retorna uma lista de resultados com
-    títulos, URLs e snippets relevantes.
+    Use this tool when you need to find information on the web about
+    any topic, news or fact. Returns a list of results with
+    titles, URLs and relevant snippets.
 
-    Exemplos de uso:
-    - search_web("melhores práticas de Python")  →  Resultados sobre Python
-    - search_web("notícias tecnologia hoje", 10)  →  10 resultados sobre notícias de tecnologia
+    Examples:
+    - search_web("Python best practices")  →  Results about Python
+    - search_web("technology news today", 10)  →  10 results about tech news
 
     Args:
-        query: Termo de pesquisa
-        num_results: Número de resultados a retornar (padrão: 5, máximo: 10)
+        query: Search term
+        num_results: Number of results to return (default: 5, maximum: 10)
 
     Returns:
-        Dicionário com resultados da pesquisa, incluindo URLs e snippets
+        Dictionary with search results, including URLs and snippets
     """
-    # Limitar número de resultados
+    # Limit number of results
     if num_results > 10:
         num_results = 10
 
     try:
-        # Usamos a API pública do DuckDuckGo
+        # Use DuckDuckGo's public API
         encoded_query = quote(query)
         url = f"https://api.duckduckgo.com/?q={encoded_query}&format=json&pretty=1"
 
@@ -55,10 +76,10 @@ async def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
 
             data = response.json()
 
-            # Extrair resultados
+            # Extract results
             results = []
 
-            # Adicionar resultados abstratos (Abstract)
+            # Add abstract results
             if data.get("Abstract"):
                 results.append(
                     {
@@ -69,7 +90,7 @@ async def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
                     }
                 )
 
-            # Adicionar resultados relacionados (RelatedTopics)
+            # Add related topics
             for topic in data.get("RelatedTopics", [])[: num_results - len(results)]:
                 if "Text" in topic and "FirstURL" in topic:
                     results.append(
@@ -83,7 +104,7 @@ async def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
                         }
                     )
 
-            # Se ainda não tivermos resultados suficientes, adicione mais dos resultados
+            # If we still don't have enough results, add more from results
             if len(results) < num_results and data.get("Results"):
                 for result in data.get("Results", [])[: num_results - len(results)]:
                     results.append(
@@ -97,34 +118,34 @@ async def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
 
             return {"query": query, "num_results": len(results), "results": results}
     except Exception as e:
-        raise RuntimeError(f"Erro ao pesquisar na web: {str(e)}")
+        raise RuntimeError(f"Error searching the web: {str(e)}")
 
 
 @mcp.tool()
 async def fetch_url(url: str, extract_text: bool = True) -> Dict[str, Any]:
-    """Obtém o conteúdo de uma URL.
+    """Gets the content of a URL.
 
-    Use esta ferramenta quando precisar do conteúdo completo ou do texto extraído
-    de uma página web específica. Pode obter tanto o HTML completo quanto apenas
-    o texto extraído sem marcações.
+    Use this tool when you need the complete content or extracted text
+    from a specific web page. Can get either the complete HTML or just
+    the extracted text without markup.
 
-    Exemplos de uso:
-    - fetch_url("https://example.com")  →  Obtém o texto da página example.com
-    - fetch_url("https://exemplo.com.br", False)  →  Obtém o HTML completo
+    Examples:
+    - fetch_url("https://example.com")  →  Gets the text from example.com
+    - fetch_url("https://example.com", False)  →  Gets the complete HTML
 
     Args:
-        url: URL da página a ser obtida
-        extract_text: Se True, extrai apenas o texto; se False, retorna o HTML (padrão: True)
+        url: URL of the page to fetch
+        extract_text: If True, extracts only text; if False, returns HTML (default: True)
 
     Returns:
-        Dicionário com o conteúdo da página e metadados
+        Dictionary with page content and metadata
     """
     try:
-        # Validar URL
+        # Validate URL
         parsed_url = urlparse(url)
         if not parsed_url.scheme or not parsed_url.netloc:
             raise ValueError(
-                "URL inválida. Deve incluir protocolo (https://) e domínio."
+                "Invalid URL. Must include protocol (https://) and domain."
             )
 
         async with httpx.AsyncClient(follow_redirects=True) as client:
@@ -133,19 +154,19 @@ async def fetch_url(url: str, extract_text: bool = True) -> Dict[str, Any]:
             )
             response.raise_for_status()
 
-            # Detectar tipo de conteúdo
+            # Detect content type
             content_type = response.headers.get("content-type", "")
             is_html = "text/html" in content_type.lower()
 
-            # Obter conteúdo
+            # Get content
             html_content = response.text
 
-            # Extrair texto se solicitado e se for HTML
+            # Extract text if requested and if HTML
             text_content = None
             if extract_text and is_html:
                 text_content = _extract_text_from_html(html_content)
 
-            # Extrair título se for HTML
+            # Extract title if HTML
             title = None
             if is_html:
                 title_match = re.search(
@@ -166,29 +187,29 @@ async def fetch_url(url: str, extract_text: bool = True) -> Dict[str, Any]:
     except httpx.HTTPStatusError as e:
         return {
             "url": url,
-            "error": f"Erro HTTP: {e.response.status_code}",
+            "error": f"HTTP Error: {e.response.status_code}",
             "status_code": e.response.status_code,
             "content": None,
         }
     except Exception as e:
-        raise RuntimeError(f"Erro ao obter URL: {str(e)}")
+        raise RuntimeError(f"Error fetching URL: {str(e)}")
 
 
 @mcp.tool()
 async def extract_links(url: str) -> Dict[str, Any]:
-    """Extrai todos os links de uma página web.
+    """Extracts all links from a web page.
 
-    Use esta ferramenta quando precisar obter todos os links (URLs) presentes
-    em uma página web, incluindo links internos e externos.
+    Use this tool when you need to get all links (URLs) present
+    on a web page, including internal and external links.
 
-    Exemplos de uso:
-    - extract_links("https://example.com")  →  Lista de links na página example.com
+    Examples:
+    - extract_links("https://example.com")  →  List of links on example.com
 
     Args:
-        url: URL da página da qual extrair os links
+        url: URL of the page to extract links from
 
     Returns:
-        Dicionário com os links extraídos, categorizados por tipo
+        Dictionary with extracted links, categorized by type
     """
     try:
         async with httpx.AsyncClient(follow_redirects=True) as client:
@@ -201,25 +222,25 @@ async def extract_links(url: str) -> Dict[str, Any]:
             base_url_parsed = urlparse(url)
             base_domain = base_url_parsed.netloc
 
-            # Extrair links
+            # Extract links
             links = re.findall(r'href=[\'"]([^\'"]+)[\'"]', html_content)
 
-            # Processar e categorizar links
+            # Process and categorize links
             internal_links = []
             external_links = []
             resource_links = []
 
             for link in links:
-                # Converter links relativos em absolutos
+                # Convert relative links to absolute
                 if link.startswith("/"):
                     link = f"{base_url_parsed.scheme}://{base_domain}{link}"
                 elif not link.startswith(("http://", "https://")):
                     link = f"{base_url_parsed.scheme}://{base_domain}/{link}"
 
-                # Categorizar o link
+                # Categorize the link
                 link_parsed = urlparse(link)
 
-                # Verificar se é um recurso
+                # Check if it's a resource
                 file_extensions = [
                     ".jpg",
                     ".jpeg",
@@ -241,7 +262,7 @@ async def extract_links(url: str) -> Dict[str, Any]:
                 else:
                     external_links.append(link)
 
-            # Remover duplicatas
+            # Remove duplicates
             internal_links = list(set(internal_links))
             external_links = list(set(external_links))
             resource_links = list(set(resource_links))
@@ -254,148 +275,154 @@ async def extract_links(url: str) -> Dict[str, Any]:
                 "resource_links": resource_links,
             }
     except Exception as e:
-        raise RuntimeError(f"Erro ao extrair links: {str(e)}")
+        raise RuntimeError(f"Error extracting links: {str(e)}")
 
 
 @mcp.resource("url://{path}")
 def url_resource(path: str) -> str:
-    """Acessar o conteúdo de uma URL como um recurso MCP.
+    """Gets URL content as a resource.
 
-    Este recurso permite acessar conteúdo da web diretamente como recursos MCP.
-    O URI deve estar no formato url://{path}, onde {path} é a URL codificada.
+    This resource provides direct access to URL content through a URI.
+    Only text content is supported. For binary content, use the fetch_url tool.
 
-    Exemplos de uso:
-    - url://example.com  →  Acessa o conteúdo de https://example.com
-    - url://api.example.com/data  →  Acessa uma API
+    Examples:
+    - url://example.com  →  Returns content from example.com
+    - url://api.example.com/data  →  Returns content from the API endpoint
 
     Args:
-        path: URL a ser acessada (sem https://)
+        path: URL path to fetch
 
     Returns:
-        O conteúdo da URL como string
+        URL content as string
+
+    Raises:
+        ValueError: If URL is invalid
+        RuntimeError: If error fetching URL
     """
-    import asyncio
-    
-    async def get_url_content():
-        url = f"https://{path}"
-        response = await fetch_url(url)
-        return response.get("content", f"Erro ao acessar {url}")
-    
-    # Executar a função assíncrona
-    loop = asyncio.get_event_loop()
-    content = loop.run_until_complete(get_url_content())
-    
-    return content
+    try:
+        # Validate URL
+        if not path.startswith(("http://", "https://")):
+            path = "https://" + path
+
+        parsed_url = urlparse(path)
+        if not parsed_url.scheme or not parsed_url.netloc:
+            raise ValueError("Invalid URL")
+
+        # Use httpx in sync mode for resource
+        response = httpx.get(
+            path,
+            headers={"User-Agent": USER_AGENT},
+            timeout=TIMEOUT,
+            follow_redirects=True
+        )
+        response.raise_for_status()
+
+        return response.text
+    except Exception as e:
+        raise RuntimeError(f"Error fetching URL: {str(e)}")
 
 
 @mcp.prompt()
 async def summarize_webpage(url: str) -> str:
-    """Gera um resumo do conteúdo de uma página web.
+    """Generates a summary of a web page.
 
-    Use este prompt quando precisar criar um resumo estruturado de uma página web,
-    incluindo título, conteúdo principal e links mais importantes.
+    Use this prompt when you need a natural language summary
+    of a web page's content and structure.
 
-    Exemplos de uso:
-    - summarize_webpage("https://example.com")  →  Resumo da página example.com
+    Examples:
+    - summarize_webpage("https://example.com")  →  Summary of example.com
 
     Args:
-        url: URL da página a ser resumida
+        url: URL of the page to summarize
 
     Returns:
-        Resumo formatado da página web
+        Natural language summary of the page
     """
     try:
-        # Obter conteúdo da página
-        page_data = await fetch_url(url, extract_text=True)
+        # Fetch page content
+        page_data = await fetch_url(url)
         
-        if "error" in page_data:
-            return f"Erro ao acessar a página: {page_data['error']}"
-        
-        # Obter links da página
+        # Extract links
         links_data = await extract_links(url)
         
-        # Extrair principais informações
-        title = page_data.get("title", "Sem título")
-        content = page_data.get("content", "")
+        # Build summary
+        summary_parts = []
         
-        # Truncar conteúdo se for muito longo
-        if len(content) > 1500:
-            content = content[:1500] + "..."
+        # Add title and URL
+        if page_data.get("title"):
+            summary_parts.append(f"Title: {page_data['title']}")
+        summary_parts.append(f"URL: {url}")
         
-        # Selecionar links importantes
-        important_links = []
+        # Add content type and response info
+        summary_parts.append(f"Content Type: {page_data.get('content_type', 'Unknown')}")
+        summary_parts.append(f"Response Time: {page_data.get('response_time_ms', 0)}ms")
         
-        # Priorizar links internos
-        internal_links = links_data.get("internal_links", [])
-        if internal_links:
-            important_links.extend(internal_links[:3])
+        # Add link statistics
+        summary_parts.append("\nLink Analysis:")
+        summary_parts.append(f"- Internal Links: {len(links_data.get('internal_links', []))}")
+        summary_parts.append(f"- External Links: {len(links_data.get('external_links', []))}")
+        summary_parts.append(f"- Resource Links: {len(links_data.get('resource_links', []))}")
         
-        # Adicionar alguns links externos
-        external_links = links_data.get("external_links", [])
-        if external_links:
-            important_links.extend(external_links[:2])
+        # Add content preview
+        if page_data.get("content"):
+            content = page_data["content"]
+            preview = content[:500] + "..." if len(content) > 500 else content
+            summary_parts.append("\nContent Preview:")
+            summary_parts.append(preview)
         
-        # Construir o resumo
-        return mcp.get_template("webpage_summary").format(
-            url=url,
-            title=title,
-            content=content,
-            links=important_links,
-            link_count=links_data.get("total_links", 0)
-        )
+        return "\n".join(summary_parts)
     except Exception as e:
-        return f"Erro ao resumir página: {str(e)}"
+        return f"Error generating summary: {str(e)}"
 
 
 def _extract_text_from_html(html: str) -> str:
-    """Extrai texto de conteúdo HTML, removendo tags.
+    """Helper function to extract readable text from HTML."""
+    # Remove script and style elements
+    html = re.sub(r"<script.*?</script>", "", html, flags=re.DOTALL)
+    html = re.sub(r"<style.*?</style>", "", html, flags=re.DOTALL)
     
-    Esta função auxiliar remove tags HTML e formata o texto para melhor legibilidade.
+    # Remove HTML comments
+    html = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
     
-    Args:
-        html: O conteúdo HTML para processar
-        
-    Returns:
-        Texto extraído do HTML
-    """
-    # Padrão para identificar scripts, estilos, comentários, etc.
-    patterns_to_remove = [
-        r"<style[^>]*>.*?</style>",
-        r"<script[^>]*>.*?</script>",
-        r"<!--.*?-->",
-        r"<head>.*?</head>",
-    ]
+    # Replace line breaks and paragraphs with newlines
+    html = re.sub(r"<br\s*/?>|</p>|</div>", "\n", html)
     
-    # Remover padrões indesejados
-    for pattern in patterns_to_remove:
-        html = re.sub(pattern, " ", html, flags=re.DOTALL)
+    # Remove all other HTML tags
+    html = re.sub(r"<[^>]+>", "", html)
     
-    # Substituir quebras de linha e tags de parágrafo
-    html = re.sub(r"<br[^>]*>|<p[^>]*>", "\n", html)
-    
-    # Remover todas as tags HTML restantes
-    html = re.sub(r"<[^>]*>", " ", html)
-    
-    # Substituir múltiplos espaços por um único espaço
-    html = re.sub(r"\s+", " ", html)
-    
-    # Decodificar entidades HTML
+    # Decode HTML entities
     text = unescape(html)
     
-    # Limpar quebras de linha duplicadas
-    text = re.sub(r"\n\s*\n", "\n\n", text)
+    # Remove excessive whitespace
+    text = re.sub(r"\s+", " ", text)
     
-    return text.strip()
+    # Split into lines and remove empty ones
+    lines = [line.strip() for line in text.split("\n")]
+    lines = [line for line in lines if line]
+    
+    return "\n".join(lines)
 
 
-# Adicionar cliente web
-mcp.add_web_client()
+async def main():
+    """Main entry point for the server."""
+    if args.stdio:
+        await mcp._run_stdio()
+    else:
+        mcp.run()
 
 
 if __name__ == "__main__":
-    try:
-        # Support both HTTP and stdio modes
-    mcp.run()  # Supports both HTTP and stdio modes
-    finally:
-        # Não são necessárias ações específicas de limpeza para este exemplo
-        pass
+    parser = argparse.ArgumentParser(description="Web Search MCP Server")
+    parser.add_argument("--stdio", action="store_true", help="Use STDIO transport")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    args = parser.parse_args()
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+
+    if args.stdio:
+        print("Starting Web Search MCP Server in STDIO mode", file=sys.stderr)
+        asyncio.run(main())
+    else:
+        print("Starting Web Search MCP Server in HTTP mode", file=sys.stderr)
+        mcp.run()

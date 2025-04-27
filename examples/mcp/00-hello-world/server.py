@@ -1,61 +1,82 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Hello World MCP Server Example
-Demonstra como criar um servidor MCP simples usando o SDK oficial com extensões.
+Demonstrates how to create a simple MCP server using the official SDK with extensions.
 """
 
 import json
+import sys
+import argparse
+import logging
+import asyncio
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from pepperpymcp import PepperFastMCP
+from pepperpymcp import PepperFastMCP, ConnectionMode
+from fastapi import FastAPI
+from mcp.server.fastmcp import FastMCP as OfficialFastMCP
 
-mcp = PepperFastMCP("Hello World", description="Um exemplo simples de servidor MCP")
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+# Create FastAPI app
+app = FastAPI()
 
-# Adiciona ferramentas MCP
+# Initialize MCP server
+mcp = PepperFastMCP(
+    name="Hello World",
+    description="A simple MCP server example",
+    version="1.0.0"
+)
+
+# Manually set app to avoid AttributeError
+if not hasattr(mcp._mcp, "app"):
+    mcp._mcp.app = app
+
+# Add MCP tools
 @mcp.tool()
 def greet(name: str = "World") -> str:
-    """Retorna uma saudação personalizada com o nome fornecido.
+    """Returns a personalized greeting with the provided name.
 
-    Use esta ferramenta quando precisar criar uma saudação simples e amigável para um usuário.
+    Use this tool when you need to create a simple and friendly greeting for a user.
 
-    Exemplos de uso:
-    - Para uma saudação genérica: greet()  →  "Hello, World!"
-    - Para uma saudação personalizada: greet("Maria")  →  "Hello, Maria!"
+    Examples:
+    - For a generic greeting: greet()  →  "Hello, World!"
+    - For a personalized greeting: greet("Maria")  →  "Hello, Maria!"
 
     Args:
-        name: O nome da pessoa a ser saudada (padrão: "World")
+        name: The name of the person to greet (default: "World")
 
     Returns:
-        Uma string contendo a saudação
+        A string containing the greeting
     """
     return f"Hello, {name}!"
 
 
 @mcp.tool()
 def calculate(operation: str, a: float, b: float) -> float:
-    """Realiza operações aritméticas básicas entre dois números.
+    """Performs basic arithmetic operations between two numbers.
 
-    Use esta ferramenta quando o usuário solicitar cálculos matemáticos como adição,
-    subtração, multiplicação ou divisão de dois valores.
+    Use this tool when the user requests mathematical calculations like addition,
+    subtraction, multiplication or division of two values.
 
-    Exemplos de uso:
-    - Para somar: calculate("add", 5, 3)  →  8
-    - Para subtrair: calculate("subtract", 10, 4)  →  6
-    - Para multiplicar: calculate("multiply", 2, 5)  →  10
-    - Para dividir: calculate("divide", 20, 5)  →  4
+    Examples:
+    - To add: calculate("add", 5, 3)  →  8
+    - To subtract: calculate("subtract", 10, 4)  →  6
+    - To multiply: calculate("multiply", 2, 5)  →  10
+    - To divide: calculate("divide", 20, 5)  →  4
 
     Args:
-        operation: O tipo de operação a ser realizada ("add", "subtract", "multiply", "divide")
-        a: O primeiro número na operação
-        b: O segundo número na operação
+        operation: The type of operation to perform ("add", "subtract", "multiply", "divide")
+        a: The first number in the operation
+        b: The second number in the operation
 
     Returns:
-        O resultado da operação como um valor de ponto flutuante
+        The result of the operation as a float value
 
     Raises:
-        ValueError: Se a operação for desconhecida ou se tentar dividir por zero
+        ValueError: If the operation is unknown or if trying to divide by zero
     """
     if operation == "add":
         return a + b
@@ -65,143 +86,148 @@ def calculate(operation: str, a: float, b: float) -> float:
         return a * b
     elif operation == "divide":
         if b == 0:
-            raise ValueError("Não é possível dividir por zero")
+            raise ValueError("Cannot divide by zero")
         return a / b
     else:
-        raise ValueError(f"Operação desconhecida: {operation}")
+        raise ValueError(f"Unknown operation: {operation}")
 
 
-# Adiciona recursos
+# Add resources
 @mcp.resource("quote://{category}")
 def get_quote(category: str) -> str:
-    """Obtém uma citação inspiradora com base na categoria solicitada.
+    """Gets an inspirational quote based on the requested category.
 
-    Use este recurso quando precisar de uma citação inspiradora específica para uma categoria.
-    O recurso pode ser acessado via URI no formato quote://{category}.
+    Use this resource when you need a specific inspirational quote for a category.
+    The resource can be accessed via URI in the format quote://{category}.
 
-    Categorias disponíveis incluem: motivação, sucesso, vida, trabalho, etc.
-    (dependendo do que estiver definido no template "quotes")
+    Available categories include: motivation, success, life, work, etc.
+    (depending on what's defined in the "quotes" template)
 
-    Exemplos de uso:
-    - quote://motivação  →  Retorna uma citação motivacional
-    - quote://sucesso  →  Retorna uma citação sobre sucesso
+    Examples:
+    - quote://motivation  →  Returns a motivational quote
+    - quote://success  →  Returns a quote about success
 
     Args:
-        category: A categoria da citação desejada
+        category: The desired quote category
 
     Returns:
-        Uma string contendo a citação ou uma mensagem indicando que a categoria não foi encontrada
+        A string containing the quote or a message indicating the category was not found
     """
     quotes = json.loads(mcp.get_template("quotes"))
 
     if category in quotes:
         return quotes[category]
-    return "Nenhuma citação encontrada para essa categoria."
+    return "No quote found for this category."
 
 
-# Adiciona prompts
+# Add prompts
 @mcp.prompt()
 async def welcome_email(name: str, content: Optional[str] = None) -> str:
-    """Gera um email de boas-vindas formal personalizado para um novo usuário.
+    """Generates a formal personalized welcome email for a new user.
 
-    Use este prompt quando precisar criar um email formal de boas-vindas para um novo
-    usuário, cliente ou membro da equipe. O conteúdo pode ser personalizado ou usar
-    o texto padrão de boas-vindas.
+    Use this prompt when you need to create a formal welcome email for a new
+    user, client or team member. The content can be customized or use
+    the default welcome text.
 
-    Exemplos de uso:
-    - welcome_email("João")  →  Email formal de boas-vindas para João
-    - welcome_email("Maria", "Bem-vinda ao nosso programa de fidelidade!")  →  Email personalizado para Maria
+    Examples:
+    - welcome_email("John")  →  Formal welcome email for John
+    - welcome_email("Maria", "Welcome to our loyalty program!")  →  Customized email for Maria
 
     Args:
-        name: Nome do destinatário do email
-        content: Conteúdo personalizado do email (opcional). Se não fornecido,
-                 será usado um texto padrão de boas-vindas.
+        name: Name of the email recipient
+        content: Custom email content (optional). If not provided,
+                 a default welcome text will be used.
 
     Returns:
-        O conteúdo formatado do email de boas-vindas
+        The formatted welcome email content
     """
     if not content:
-        content = "Bem-vindo(a) ao nosso serviço! Estamos muito felizes em tê-lo(a) conosco."
+        content = "Welcome to our service! We're very happy to have you with us."
 
     return mcp.get_template("welcome_email").format(name=name, content=content)
 
 
 @mcp.prompt()
-async def quick_note(name: str, message: str, sender: Optional[str] = "Anônimo") -> str:
-    """Gera uma nota rápida e informal para enviar a alguém.
+async def quick_note(name: str, message: str, sender: Optional[str] = "Anonymous") -> str:
+    """Generates a quick informal note to send to someone.
 
-    Use este prompt quando precisar criar uma mensagem curta e informal
-    para enviar a alguém, como um lembrete, agradecimento ou aviso rápido.
+    Use this prompt when you need to create a short and informal message
+    to send to someone, like a reminder, thank you note or quick notice.
 
-    Exemplos de uso:
-    - quick_note("Carlos", "Reunião amanhã às 10h", "Ana")  →  Nota de Ana para Carlos
-    - quick_note("Equipe", "Não esqueçam do prazo de hoje!")  →  Nota de remetente anônimo para a equipe
+    Examples:
+    - quick_note("Carlos", "Meeting tomorrow at 10am", "Ana")  →  Note from Ana to Carlos
+    - quick_note("Team", "Don't forget today's deadline!")  →  Note from anonymous sender to the team
 
     Args:
-        name: Nome do destinatário da nota
-        message: O conteúdo da mensagem a ser enviada
-        sender: Nome do remetente (padrão: "Anônimo")
+        name: Name of the note recipient
+        message: The message content to be sent
+        sender: Name of the sender (default: "Anonymous")
 
     Returns:
-        A nota formatada pronta para envio
+        The formatted note ready to send
     """
     return mcp.get_template("quick_note").format(name=name, message=message, sender=sender)
 
 
 @mcp.prompt()
 async def start_conversation(name: str) -> list[Dict[str, Any]]:
-    """Inicia uma conversa amigável e contextual com o usuário.
+    """Starts a friendly and contextual conversation with the user.
 
-    Use este prompt quando precisar iniciar uma interação com um usuário
-    de forma amigável e personalizada, adaptando a saudação ao momento do dia
-    (bom dia, boa tarde ou boa noite).
+    Use this prompt when you need to start an interaction with a user
+    in a friendly and personalized way, adapting the greeting to the time of day
+    (good morning, good afternoon or good evening).
 
-    Exemplos de uso:
-    - start_conversation("Paulo")  →  Inicia uma conversa adaptada ao horário atual com Paulo
+    Examples:
+    - start_conversation("Paul")  →  Starts a conversation adapted to the current time with Paul
 
     Args:
-        name: Nome do usuário com quem iniciar a conversa
+        name: Name of the user to start the conversation with
 
     Returns:
-        Uma lista de mensagens formatadas para iniciar a conversa
+        A list of formatted messages to start the conversation
     """
     hour = datetime.now().hour
 
     if hour < 12:
-        time = "bom dia"
+        time = "good morning"
     elif hour < 18:
-        time = "boa tarde"
+        time = "good afternoon"
     else:
-        time = "boa noite"
+        time = "good evening"
 
     return [
-        mcp.create_assistant_message(f"Olá {name}, {time}! Como posso ajudar?"),
-        mcp.create_user_message("Estou aqui para aprender sobre MCP!"),
-        mcp.create_assistant_message("Ótimo! Vou te ajudar a entender como funciona. Por onde quer começar?"),
+        {"role": "assistant", "content": f"Hi {name}, {time}! How can I help?"},
+        {"role": "user", "content": "I'm here to learn about MCP!"},
+        {"role": "assistant", "content": "Great! I'll help you understand how it works. Where would you like to start?"},
     ]
 
 
-# Adiciona endpoint HTTP personalizado
+# Add custom HTTP endpoint
 @mcp.http_endpoint("/greeting/{name}")
 async def get_greeting(name: str):
-    """Endpoint HTTP personalizado para saudação"""
-    return {"message": f"Olá, {name}!"}
+    """Custom HTTP endpoint for greeting"""
+    return {"message": f"Hello, {name}!"}
 
+
+async def main():
+    """Main entry point for the server."""
+    if args.stdio:
+        await mcp._run_stdio()
+    else:
+        mcp.run()
 
 if __name__ == "__main__":
-    import sys
-    import argparse
-    
     parser = argparse.ArgumentParser(description="Hello World MCP Server")
-    parser.add_argument("--stdio", action="store_true", help="Use stdin/stdout for MCP transport")
-    parser.add_argument("--http", action="store_true", help="Use HTTP for MCP transport (default)")
+    parser.add_argument("--stdio", action="store_true", help="Use STDIO transport")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = parser.parse_args()
-    
-    # Detectar modo automaticamente se não estiver especificado
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+
     if args.stdio:
         print("Starting Hello World MCP Server in STDIO mode", file=sys.stderr)
-        mcp.run(transport_mode="stdio", debug=args.debug)
+        asyncio.run(main())
     else:
         print("Starting Hello World MCP Server in HTTP mode", file=sys.stderr)
-        mcp.run(transport_mode="http", debug=args.debug)
+        mcp.run()

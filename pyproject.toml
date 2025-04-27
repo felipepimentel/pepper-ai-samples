@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-validator"
+version = "0.1.0"
+description = "MCP Server Validator"
+requires-python = ">=3.10"
+dependencies = ["httpx>=0.28.0", "pydantic>=2.5.0"]
+
+[project.optional-dependencies]
+dev = ["black>=23.9.1", "ruff>=0.0.292"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.ruff]
+select = ["E", "F", "B"]
+ignore = ["E501"]

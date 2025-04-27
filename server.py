@@ -31,10 +31,6 @@ mcp = PepperFastMCP(
     version="1.0.0"
 )
 
-# Manually set app to avoid AttributeError
-if not hasattr(mcp._mcp, "app"):
-    mcp._mcp.app = app
-
 # Create async SQLite engine
 engine = create_async_engine("sqlite+aiosqlite:///database.db")
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -127,7 +123,7 @@ def run_server():
     parser = argparse.ArgumentParser(description="Database Query MCP Server")
     parser.add_argument("--stdio", action="store_true", help="Use STDIO transport")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--port", type=int, default=8001, help="HTTP port (default: 8001)")
+    parser.add_argument("--port", type=int, default=8001, help="HTTP port")
     args = parser.parse_args()
 
     if args.debug:
@@ -141,8 +137,11 @@ def run_server():
         print("Starting Database Query MCP Server in STDIO mode", file=sys.stderr)
         asyncio.run(mcp._run_stdio())
     else:
-        print(f"Starting Database Query MCP Server in HTTP mode on port {args.port}", file=sys.stderr)
-        mcp.run(port=args.port)
+        print(f"Starting Database Query MCP Server in SSE mode on port {args.port}", file=sys.stderr)
+        import uvicorn
+        # Mount the SSE app
+        app.mount("/mcp", mcp.sse_app())
+        uvicorn.run(app, host="0.0.0.0", port=args.port)
 
 if __name__ == "__main__":
     run_server()

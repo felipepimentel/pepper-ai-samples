@@ -9,8 +9,8 @@ import asyncio
 import logging
 from typing import Dict, Any, List, Optional
 import httpx
-from mcp.client import MCPClient as OfficialMCPClient
-from mcp.transport import HTTPTransport
+from .client import MCPClient as OfficialMCPClient
+from .transports import HTTPTransport
 
 logger = logging.getLogger(__name__)
 

@@ -34,6 +34,18 @@ from .sample_server import (
     create_sample_server,
 )
 
+from .client import (
+    MCPClient,
+    MCPStdioClient,
+    create_interactive_session,
+)
+
+from .transports import (
+    Transport,
+    StdioTransport,
+    HTTPTransport,
+)
+
 __version__ = "0.2.0"
 __all__ = [
     # Server creation
@@ -58,4 +70,14 @@ __all__ = [
     # Sample implementations
     "SampleMCPServer",
     "create_sample_server",
+    
+    # Client implementations
+    "MCPClient",
+    "MCPStdioClient",
+    "create_interactive_session",
+    
+    # Transport implementations
+    "Transport",
+    "StdioTransport",
+    "HTTPTransport",
 ]

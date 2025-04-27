@@ -1,0 +1,24 @@
+MCP Server Validation Report - 2025-04-27T11:47:01.220413
+================================================================================
+
+Monorepo: /home/pimentel/Workspace/pepper-ai-samples/examples/mcp
+
+Total de servidores: 4
+Aprovados: 0
+Falhas: 0
+Erros: 4
+
+Detalhes por servidor:
+--------------------------------------------------------------------------------
+⚠️ 03-database-query (python): ERROR
+   Diretório: /home/pimentel/Workspace/pepper-ai-samples/examples/mcp/03-database-query
+
+⚠️ 00-hello-world (python): ERROR
+   Diretório: /home/pimentel/Workspace/pepper-ai-samples/examples/mcp/00-hello-world
+
+⚠️ 01-file-explorer (python): ERROR
+   Diretório: /home/pimentel/Workspace/pepper-ai-samples/examples/mcp/01-file-explorer
+
+⚠️ 02-web-search (python): ERROR
+   Diretório: /home/pimentel/Workspace/pepper-ai-samples/examples/mcp/02-web-search
+

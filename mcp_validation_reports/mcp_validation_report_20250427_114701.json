@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-04-27T11:47:01.220143",
+  "monorepo_path": "/home/pimentel/Workspace/pepper-ai-samples/examples/mcp",
+  "statistics": {
+    "total": 4,
+    "passed": 0,
+    "failed": 0,
+    "errors": 4
+  },
+  "results": {
+    "03-database-query": {
+      "status": "error",
+      "tests": {},
+      "log_path": "/tmp/tmp_vzj3u9f.log",
+      "start_time": "2025-04-27T11:46:57.979680",
+      "server_type": "python",
+      "directory": "/home/pimentel/Workspace/pepper-ai-samples/examples/mcp/03-database-query",
+      "error": "Falha ao iniciar o servidor",
+      "end_time": "2025-04-27T11:47:00.216406"
+    },
+    "00-hello-world": {
+      "status": "error",
+      "tests": {},
+      "log_path": "/tmp/tmpu36wfk88.log",
+      "start_time": "2025-04-27T11:46:58.006728",
+      "server_type": "python",
+      "directory": "/home/pimentel/Workspace/pepper-ai-samples/examples/mcp/00-hello-world",
+      "error": "Falha ao iniciar o servidor",
+      "end_time": "2025-04-27T11:47:00.667409"
+    },
+    "01-file-explorer": {
+      "status": "error",
+      "tests": {},
+      "log_path": "/tmp/tmpmnvt6h52.log",
+      "start_time": "2025-04-27T11:46:58.014427",
+      "server_type": "python",
+      "directory": "/home/pimentel/Workspace/pepper-ai-samples/examples/mcp/01-file-explorer",
+      "error": "Falha ao iniciar o servidor",
+      "end_time": "2025-04-27T11:47:01.045111"
+    },
+    "02-web-search": {
+      "status": "error",
+      "tests": {},
+      "log_path": "/tmp/tmp57p24auc.log",
+      "start_time": "2025-04-27T11:46:58.066591",
+      "server_type": "python",
+      "directory": "/home/pimentel/Workspace/pepper-ai-samples/examples/mcp/02-web-search",
+      "error": "Falha ao iniciar o servidor",
+      "end_time": "2025-04-27T11:47:01.220072"
+    }
+  }
+}

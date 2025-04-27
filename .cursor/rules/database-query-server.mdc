@@ -1,0 +1,23 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Database Query MCP Example Rule
+
+- The main entry point is [server.py](mdc:examples/mcp/03-database-query/server.py).
+- The server is started by running `python server.py`.
+- The server supports the following CLI arguments:
+  - `--stdio`: Run in STDIO transport mode
+  - `--debug`: Enable debug logging
+  - `--port`: Specify the HTTP port (default: 8001)
+- The FastAPI app is mounted at `/mcp` for SSE/MCP communication.
+- The default SQLite database is `database.db` in the same directory.
+- Tools are registered using the `@mcp.tool()` decorator and include:
+  - `list_tables`: List all tables
+  - `get_schema`: Get schema for a table
+  - `query`: Execute SQL queries
+  - `ask`: Placeholder for natural language queries
+- The server initializes the database with `users` and `products` tables if they do not exist.
+- To change the port, use `--port <PORT>` when starting the server.
+- Example: `python server.py --port 9000` runs the server on port 9000.
